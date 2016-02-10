@@ -1,10 +1,10 @@
-package com.github.finagle.transport
+package com.github.finagle
+package transport
 package roc
 
 import org.jboss.netty.buffer.{ChannelBuffer, ChannelBuffers}
 import java.nio.ByteOrder
 import java.nio.charset.Charset
-
 
 object Buffer {
 
