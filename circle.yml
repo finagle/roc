@@ -1,0 +1,12 @@
+machine:
+  java:
+    version: oraclejdk8
+dependencies:
+  cache_directories:
+    - "~/.ivy2"
+    - "~/.sbt"
+  pre:
+    - curl -s https://raw.githubusercontent.com/paulp/sbt-extras/master/sbt > $HOME/bin/sbt
+    - chmod 0755 $HOME/bin/sbt
+    - which sbt
+    - sbt sbt-version

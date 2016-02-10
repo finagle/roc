@@ -1,4 +1,5 @@
 # roc
+[![Circle CI](https://circleci.com/gh/penland365/roc/tree/master.svg?style=svg&circle-token=07305c9575ac3fcf0ab5bade8ae2f29921ac04c9)](https://circleci.com/gh/penland365/roc/tree/master)
 
 ## License
 
