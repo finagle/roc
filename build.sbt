@@ -8,17 +8,12 @@ lazy val compilerOptions = Seq(
   "-deprecation",
   "-encoding", "UTF-8",
   "-feature",
-  "-language:existentials",
-  "-language:higherKinds",
-  "-language:implicitConversions",
-  "-language:experimental.macros",
   "-unchecked",
   "-Xfatal-warnings",
   "-Xlint",
   "-Yinline-warnings",
   "-Yno-adapted-args",
   "-Ywarn-dead-code",
-  "-Ywarn-numeric-widen",
   "-Ywarn-value-discard",
   "-Xfuture"
 )

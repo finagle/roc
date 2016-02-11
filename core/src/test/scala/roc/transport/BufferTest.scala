@@ -57,4 +57,110 @@ final class BufferTest extends FunSuite {
     val br = BufferReader(str.getBytes)
     assert(str.take(str.size-1) === br.readNullTerminatedString())
   }
+
+  def writerCtx() = new {
+    val bytes = new Array[Byte](9)
+    val bw = BufferWriter(bytes)
+    val br = BufferReader(bytes)
+  }
+
+  test("write byte") {
+    val ctx = writerCtx()
+    import ctx._
+    bw.writeByte(0x01.toByte)
+    assert(0x01 === br.readByte)
+  }
+
+  test("write Short") {
+    val ctx = writerCtx()
+    import ctx._
+    bw.writeShort(0xFE.toShort)
+    assert(0xFE === br.readShort)
+  }
+
+  test("write Int24") {
+    val ctx = writerCtx()
+    import ctx._
+    bw.writeInt24(0x872312)
+    assert(0x872312 === br.readUnsignedInt24)
+  }
+
+  test("write Int") {
+    val ctx = writerCtx()
+    import ctx._
+    bw.writeInt(0x98765432)
+    assert(0x98765432 === br.readInt)
+  }
+
+  test("write Long") {
+    val ctx = writerCtx()
+    import ctx._
+    bw.writeLong(0x7877665544332211L)
+    assert(0x7877665544332211L === br.readLong)
+  }
+
+  test("tiny length coded binary") {
+    val ctx = writerCtx()
+    import ctx._
+    bw.writeLengthCodedBinary(250)
+    assert(br.readLengthCodedBinary === 250)
+  }
+
+  test("short length coded binary") {
+    val ctx = writerCtx()
+    import ctx._
+    bw.writeLengthCodedBinary(65535)
+    assert(br.readLengthCodedBinary === 65535)
+  }
+
+  test("medium length coded binary") {
+    val ctx = writerCtx()
+    import ctx._
+    bw.writeLengthCodedBinary(16777215)
+    assert(br.readLengthCodedBinary === 16777215)
+  }
+
+  test("large length coded binary") {
+    val ctx = writerCtx()
+    import ctx._
+    bw.writeLengthCodedBinary(16777217L)
+    assert(br.readLengthCodedBinary === 16777217L)
+  }
+
+  test("null terminated string") {
+    val ctx = writerCtx()
+    import ctx._
+    val str = "test\u0000"
+    bw.writeNullTerminatedString(str)
+    assert(str.take(str.length-1) === br.readNullTerminatedString())
+  }
+
+  test("tiny length coded string") {
+    val ctx = writerCtx()
+    import ctx._
+    val str = "test"
+    bw.writeLengthCodedString(str)
+    assert(str === br.readLengthCodedString())
+  }
+
+  test("short length coded string") {
+    val str = "test" * 100
+    val len = Buffer.sizeOfLen(str.size) + str.size
+    val strAsBytes = new Array[Byte](len)
+    val bw = BufferWriter(strAsBytes)
+    bw.writeLengthCodedString(str)
+
+    val br = BufferReader(strAsBytes)
+    assert(str === br.readLengthCodedString())
+  }
+
+  test("coded string with non-ascii characters") {
+    val str = "バイトルドットコム"
+    val strAsBytes = new Array[Byte](100)
+    val bw = BufferWriter(strAsBytes)
+    bw.writeLengthCodedString(str)
+
+    val br = BufferReader(strAsBytes)
+    assert(str === br.readLengthCodedString())
+  }
 }
