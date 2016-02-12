@@ -1,6 +1,7 @@
 package com.github.finagle
-package transport
 package roc
+package postgresql
+package transport
 
 import org.scalatest.FunSuite
 
