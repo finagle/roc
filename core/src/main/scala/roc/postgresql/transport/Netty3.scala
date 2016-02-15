@@ -20,7 +20,7 @@ private[roc] final class PacketFrameDecoder extends FrameDecoder {
     val code = buffer.readByte.toChar
     val length = buffer.readInt 
 
-    if(buffer.readableBytes < length - 4) {
+    if(buffer.readableBytes < (length - 4)) {
       buffer.resetReaderIndex()
       return null
     }
