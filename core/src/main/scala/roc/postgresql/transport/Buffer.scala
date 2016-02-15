@@ -1,6 +1,7 @@
 package com.github.finagle
-package transport
 package roc
+package postgresql
+package transport
 
 import org.jboss.netty.buffer.{ChannelBuffer, ChannelBuffers}
 import java.nio.ByteOrder
@@ -213,9 +214,11 @@ trait BufferWriter extends Buffer {
   def writeLong(n: Long): BufferWriter
   def writeFloat(f: Float): BufferWriter
   def writeDouble(d: Double): BufferWriter
+  def writeNull: BufferWriter
 
   def skip(n: Int): BufferWriter
 
+  def toBytes: Array[Byte]
   /**
    * Fills the rest of the buffer with the given byte.
    * @param b Byte used to fill.
@@ -358,6 +361,17 @@ object BufferWriter {
     def writeBytes(bytes: Array[Byte]) = {
       underlying.writeBytes(bytes)
       this
+    }
+
+    def writeNull: BufferWriter = {
+      underlying.writeZero(1)
+      this
+    }
+
+    def toBytes: Array[Byte] = {
+      val bytes = new Array[Byte](underlying.writerIndex)
+      underlying.getBytes(0, bytes)
+      bytes
     }
   }
 }
