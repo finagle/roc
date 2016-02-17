@@ -11,6 +11,7 @@ lazy val compilerOptions = Seq(
   "-unchecked",
   "-Xfatal-warnings",
   "-Xlint",
+  "-language:implicitConversions",
   "-Yinline-warnings",
   "-Yno-adapted-args",
   "-Ywarn-dead-code",
@@ -18,11 +19,16 @@ lazy val compilerOptions = Seq(
   "-Xfuture"
 )
 
+lazy val specs2Version = "3.7"
+
 lazy val testDependencies = Seq(
-  "org.scalatest"   %%  "scalatest"     % "2.2.6",
-   "org.mockito"    %   "mockito-core"  % "1.10.19"
+  "org.specs2"      %%  "specs2-core"       %   specs2Version,
+  "org.specs2"      %%  "specs2-scalacheck" %   specs2Version,
+  "org.specs2"      %%  "specs2-junit"      %   specs2Version,
+  "org.specs2"      %%  "specs2-mock"       %   specs2Version 
 )
 
+scalacOptions in Test ++= Seq("-Yrangepos")
 
 lazy val baseSettings = Seq(
   scalacOptions ++= compilerOptions, 

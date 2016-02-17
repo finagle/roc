@@ -10,3 +10,7 @@ dependencies:
     - chmod 0755 $HOME/bin/sbt
     - which sbt
     - sbt sbt-version
+test:
+  post:
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    - find . -type f -regex ".*/core/target/test-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
