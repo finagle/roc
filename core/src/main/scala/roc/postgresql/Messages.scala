@@ -2,23 +2,35 @@ package com.github.finagle
 package roc
 package postgresql
 
-import com.twitter.util.Future
-import com.github.finagle.roc.postgresql.transport.{Buffer, BufferReader, BufferWriter, Packet}
-import cats.syntax.eq._
 import cats.std.all._
+import cats.syntax.eq._
+import com.github.finagle.roc.postgresql.transport.{Buffer, BufferReader, BufferWriter, Packet}
+import com.twitter.util.Future
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
+import scala.collection.mutable.ListBuffer
 
-sealed trait Message {
-  def toPacket: Packet = Packet(None, BufferWriter(Array[Byte](0)))
-}
-
+sealed trait Message
 object Message {
-  val AuthenticationRequest: Byte = 0x52 // 'R'
-  val ErrorMessage: Byte          = 0x45 // 'E'
+  val AuthenticationRequest: Char = 'R'
+  val ErrorMessage: Char          = 'E'
   val ParameterStatus: Char       = 'S'
   val ReadyForQuery: Char         = 'Z'
   val BackendKeyData: Char        = 'K'
   val RowDescription: Char        = 'T'
+  val DataRow: Char               = 'D'
+  val CommandComplete: Char       = 'C'
+
+  private[postgresql] def lengthOfCStyleString(str: String): Int = {
+    val bytes = str.getBytes(StandardCharsets.UTF_8)
+    bytes.length + 1
+  }
 }
+
+sealed trait FrontendMessage extends Message {
+  def encode: Packet
+}
+sealed trait BackendMessage extends Message
 
 case class ErrorMessage(byte: Char, reason: String) extends Message
 object ErrorMessage {
@@ -31,47 +43,27 @@ object ErrorMessage {
   }
 }
 
-sealed trait StartupMessages extends Message
+sealed trait AuthenticationMessage extends BackendMessage
+object AuthenticationMessage {
 
-case class StartupMessage(user: String, database: String) extends StartupMessages {
-
-  override def toPacket: Packet = {
-    val buffer = BufferWriter(new Array[Byte](100))
-    buffer.writeShort(3)
-    buffer.writeShort(0)
-    buffer.writeNullTerminatedString("user")
-    buffer.writeNullTerminatedString(user)
-    buffer.writeNullTerminatedString("database")
-    buffer.writeNullTerminatedString(database)
-    buffer.writeNull
-    val bytes = buffer.toBytes
-
-    Packet(None, Buffer(bytes))
-  }
-}
-
-object StartupMessages {
-
-  def apply(packet: Packet): Future[StartupMessages] = {
-    val bytes = packet.body.underlying.array
-    if(bytes sameElements AuthenticationOkBytes) {
-      return Future.value(AuthenticationOk)
-    } else if(bytes sameElements AuthenticationClearTxtPasswdBytes) {
-      println("Authentication clear txt passwd")
-      return Future.value(AuthenticationClearTxtPasswd)
+  def apply(packet: Packet): Future[AuthenticationMessage] = {
+    val br = BufferReader(packet.body)
+    br.readInt match {
+      case 0 => Future.value(AuthenticationOk)
+      case 3 => Future.value(AuthenticationClearTxtPasswd)
+      case 5 => {
+        val salt = br.take(4)
+        Future.value(new AuthenticationMD5Passwd(salt))
+      }
+      case x => Future.exception(new Exceptions.InvalidAuthenticationRequest(x))
     }
-
-    return Future.exception(new Exception())
   }
-
-  private[this] val AuthenticationOkBytes             = Array[Byte](0x0,0x0,0x0,0x0)
-  private[this] val AuthenticationClearTxtPasswdBytes = Array[Byte](0x0,0x0,0x0,0x3)
 }
+case object AuthenticationOk extends AuthenticationMessage
+case object AuthenticationClearTxtPasswd extends AuthenticationMessage
+case class AuthenticationMD5Passwd(salt: Array[Byte]) extends AuthenticationMessage
 
-case object AuthenticationOk extends StartupMessages
-case object AuthenticationClearTxtPasswd extends StartupMessages
-
-case class ParameterStatusMessage(parameter: String, value: String) extends Message
+case class ParameterStatusMessage(parameter: String, value: String) extends BackendMessage
 object ParameterStatusMessage {
   def apply(packet: Packet): Future[ParameterStatusMessage] = {
     val br = BufferReader(packet.body)
@@ -83,7 +75,7 @@ object ParameterStatusMessage {
   }
 }
 
-case class BackendKeyData(processId: Int, secretKey: Int) extends Message
+case class BackendKeyData(processId: Int, secretKey: Int) extends BackendMessage
 object BackendKeyData {
   def apply(packet: Packet): Future[BackendKeyData] = {
     val br = BufferReader(packet.body)
@@ -95,7 +87,7 @@ object BackendKeyData {
   }
 }
 
-case class ReadyForQuery(transactionStatus: Char) extends Message
+case class ReadyForQuery(transactionStatus: Char) extends BackendMessage
 object ReadyForQuery {
   def apply(packet: Packet): Future[ReadyForQuery] = {
     val br = BufferReader(packet.body)
@@ -105,13 +97,39 @@ object ReadyForQuery {
   }
 }
 
+case class StartupMessage(user: String, database: String) extends FrontendMessage {
+  import StartupMessage._
 
-final class Query(s: String) extends Message {
+  def encode: Packet = {
+    val buffer = BufferWriter(new Array[Byte](lengthOfByteArray(this)))
+    buffer.writeShort(3)
+    buffer.writeShort(0)
+    buffer.writeNullTerminatedString("user")
+    buffer.writeNullTerminatedString(user)
+    buffer.writeNullTerminatedString("database")
+    buffer.writeNullTerminatedString(database)
+    buffer.writeNull
+    Packet(None, Buffer(buffer.toBytes))
+  }
+}
+object StartupMessage {
+  private[postgresql] def lengthOfByteArray(sm: StartupMessage): Int = {
+    val protocolLength  = 4 //2 shorts * 2
+    val lengthOfUserLbl = Message.lengthOfCStyleString("user")
+    val lengthOfUser    = Message.lengthOfCStyleString(sm.user)
+    val lengthOfDbLbl   = Message.lengthOfCStyleString("database")
+    val lengthOfDb      = Message.lengthOfCStyleString(sm.database)
+    val extraNull       = 1
 
-  override def toPacket: Packet = {
-    val length = s.getBytes.length
+    protocolLength + lengthOfUserLbl + lengthOfUser + lengthOfDbLbl + lengthOfDb + extraNull
+  }
+}
+
+case class Query(queryString: String) extends FrontendMessage {
+  def encode: Packet = {
+    val length = queryString.getBytes.length
     val bw = BufferWriter(new Array[Byte](length + 1))
-    bw.writeNullTerminatedString(s)
+    bw.writeNullTerminatedString(queryString)
     val bytes = bw.toBytes
     Packet(Some('Q'), Buffer(bytes))
   }
@@ -149,18 +167,64 @@ object RowDescription {
     Future.value(rd)
   }
 }
-
-
 case class RowDescriptionField(name: String, tableObjectId: Int, tableAttributeId: Short,
   dataTypeObjectId: Int, dataTypeSize: Short, typeModifier: Int, formatCode: Short)
 
+case class PasswordMessage(password: String) extends FrontendMessage {
+  def encode: Packet = {
+    val length = password.getBytes(StandardCharsets.UTF_8).length
+    val bw = BufferWriter(new Array[Byte](length + 1))
+    bw.writeNullTerminatedString(password)
+    Packet(Some('p'), Buffer(bw.toBytes))
+  }
+}
+object PasswordMessage {
+  private[postgresql] def encryptMD5Passwd(user: String, passwd: String, 
+    salt: Array[Byte]): String = {
+      val md = MessageDigest.getInstance("MD5")
+      md.update((passwd + user).getBytes)
+      val unsaltedHexStr = md.digest().map(x => "%02x".format(x.byteValue)).foldLeft("")(_ + _)
+      val saltedBytes = unsaltedHexStr.getBytes ++ salt
+      md.reset()
+      md.update(saltedBytes)
+      md.digest().map(x => "%02x".format(x.byteValue)).foldLeft("md5")(_ + _)
+    }
+}
 
+case class DataRow(numColumns: Short, columnBytes: List[Option[Array[Byte]]]) extends BackendMessage 
+object DataRow {
+  def apply(packet: Packet): Future[DataRow] = {
+    val br = BufferReader(packet.body)
+    val columns = br.readShort
 
+    @annotation.tailrec
+    def loop(idx: Short, cbs: ListBuffer[Option[Array[Byte]]]): List[Option[Array[Byte]]] = 
+      idx match {
+        case x if x < columns => {
+          val columnLength = br.readInt
+          val bytes = if(columnLength == -1) {
+            None
+          } else if(columnLength == 0) {
+            Some(Array.empty[Byte])
+          } else {
+            Some(br.take(columnLength))
+          }
+          loop((idx + 1).toShort, cbs += bytes)
+        }
+        case x if x >= columns => cbs.toList
+      }
 
+    val columnBytes = loop(0, ListBuffer.empty[Option[Array[Byte]]])
+    Future.value(new DataRow(columns, columnBytes))
+  }
+}
 
+case class CommandComplete(commandTag: String) extends BackendMessage
+object CommandComplete {
+  def apply(packet: Packet): Future[CommandComplete] = {
+    val br = BufferReader(packet.body)
+    val commandTag = br.readNullTerminatedString()
 
-
-
-
-
-
+    Future.value(new CommandComplete(commandTag))
+  }
+}
