@@ -8,19 +8,21 @@ import com.twitter.util.{Closable, Future, Time}
 
 
 object Client {
-  def apply (factory: ServiceFactory[FrontendMessage, Message]): Client = 
+  def apply (factory: ServiceFactory[Request, Result]): Client = 
     new StdClient(factory)
 }
 
 trait Client extends Closable {
-  def query(m: Query): Future[Message]
+  def query(req: Request): Future[Result]
 }
 
-final class StdClient(val factory: ServiceFactory[FrontendMessage, Message]) extends Client {
+final class StdClient(val factory: ServiceFactory[Request, Result]) extends Client {
   private[this] val service = factory.toService
 
-  def query(m: Query): Future[Message] =
-    service(m)
+  def query(req: Request): Future[Result] = {
+    val query = new Query(req.query)
+    service(req)
+  }
 
   def close(deadline: Time): Future[Unit] = service.close(deadline)
 }
