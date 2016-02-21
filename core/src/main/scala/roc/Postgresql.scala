@@ -12,10 +12,10 @@ import com.twitter.util.{Await, Duration, Future}
 import java.net.SocketAddress
 
 import com.github.finagle.roc.postgresql.transport.{Packet, PostgresqlClientPipelineFactory}
-import com.github.finagle.roc.postgresql.{FrontendMessage, Message}
+import com.github.finagle.roc.postgresql.{Request, Result}
 import com.github.finagle.roc.postgresql.Startup
 
-trait PostgresqlRichClient { self: com.twitter.finagle.Client[FrontendMessage, Message] => 
+trait PostgresqlRichClient { self: com.twitter.finagle.Client[Request, Result] => 
 
   def newRichClient(dest: Name, label: String): postgresql.Client = 
     postgresql.Client(newClient(dest, label))
@@ -24,18 +24,18 @@ trait PostgresqlRichClient { self: com.twitter.finagle.Client[FrontendMessage, M
     postgresql.Client(newClient(dest))
 }
 
-object Postgresql extends com.twitter.finagle.Client[FrontendMessage, Message] 
+object Postgresql extends com.twitter.finagle.Client[Request, Result] 
   with PostgresqlRichClient {
 
   case class Client(
-    stack: Stack[ServiceFactory[FrontendMessage, Message]] = StackClient.newStack,
+    stack: Stack[ServiceFactory[Request, Result]] = StackClient.newStack,
     params: Stack.Params = StackClient.defaultParams + DefaultPool.Param(
         low = 0, high = 1, bufferSize = 0,
         idleTime = Duration.Top,
         maxWaiters = Int.MaxValue)
-  ) extends StdStackClient[FrontendMessage, Message, Client] with PostgresqlRichClient {
+  ) extends StdStackClient[Request, Result, Client] with PostgresqlRichClient {
     protected def copy1(
-      stack: Stack[ServiceFactory[FrontendMessage, Message]] = this.stack,
+      stack: Stack[ServiceFactory[Request, Result]] = this.stack,
       params: Stack.Params = this.params
     ): Client = copy(stack, params)
 
@@ -44,7 +44,7 @@ object Postgresql extends com.twitter.finagle.Client[FrontendMessage, Message]
   protected def newTransporter = Netty3Transporter[Packet, Packet](
     PostgresqlClientPipelineFactory, StackClient.defaultParams)
   protected def newDispatcher(transport: Transport[Packet, Packet]): 
-    Service[FrontendMessage, Message] = postgresql.ClientDispatcher(transport, Startup(params))
+    Service[Request, Result] = postgresql.ClientDispatcher(transport, Startup(params))
   override def configured[P](psp: (P, Stack.Param[P])): Client = super.configured(psp)
 
   def withCredentials(username: String, database: Option[String]): Client = 
@@ -56,9 +56,9 @@ object Postgresql extends com.twitter.finagle.Client[FrontendMessage, Message]
 
   val client = Client()
 
-  def newClient(dest: Name, label: String): ServiceFactory[FrontendMessage, Message] = 
+  def newClient(dest: Name, label: String): ServiceFactory[Request, Result] = 
     client.newClient(dest, label)
 
-  def newService(dest: Name, label: String): Service[FrontendMessage, Message] =
+  def newService(dest: Name, label: String): Service[Request, Result] =
     client.newService(dest, label)
 }
