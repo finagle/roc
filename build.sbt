@@ -35,12 +35,13 @@ lazy val baseSettings = Seq(
   scalacOptions in (Compile, console) := compilerOptions,
   libraryDependencies ++= testDependencies.map(_ % "test"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
+  coverageEnabled := true,
   resolvers += "Twitter Maven repo" at "http://maven.twttr.com/"
 )
 
 lazy val allSettings = buildSettings ++ baseSettings 
 
-lazy val coreVersion = "0.1.1"
+lazy val coreVersion = "0.0.1-ALPHA"
 
 lazy val catsVersion = "0.4.1"
 
