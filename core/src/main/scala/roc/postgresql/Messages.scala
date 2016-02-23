@@ -55,7 +55,7 @@ object AuthenticationMessage {
         val salt = br.take(4)
         Future.value(new AuthenticationMD5Passwd(salt))
       }
-      case x => Future.exception(new Exceptions.InvalidAuthenticationRequest(x))
+      case x => Future.exception(new InvalidAuthenticationRequest(x))
     }
   }
 }
@@ -69,9 +69,7 @@ object ParameterStatusMessage {
     val br = BufferReader(packet.body)
     val param = br.readNullTerminatedString()
     val value = br.readNullTerminatedString()
-    val ms = new ParameterStatusMessage(param, value)
-    println(ms)
-    Future.value(ms)
+    Future.value(new ParameterStatusMessage(param, value))
   }
 }
 
@@ -81,9 +79,7 @@ object BackendKeyData {
     val br = BufferReader(packet.body)
     val procId = br.readInt
     val secretKey = br.readInt
-    val bkd = new BackendKeyData(procId, secretKey)
-    println(bkd)
-    Future.value(bkd)
+    Future.value(new BackendKeyData(procId, secretKey))
   }
 }
 
@@ -151,7 +147,11 @@ object RowDescription {
           val dataTypeObjectId = br.readInt
           val dataTypeSize = br.readShort
           val typeModifier = br.readInt
-          val formatCode = br.readShort 
+          val formatCode = br.readShort match {
+            case 0 => Text
+            case 1 => Binary
+            case _ => throw new Exception()
+          }
 
           val rdf = RowDescriptionField(name, tableObjectId, tableAttributeId, dataTypeObjectId,
             dataTypeSize, typeModifier, formatCode)
@@ -161,14 +161,11 @@ object RowDescription {
       }
 
     val fs = loop(0, List.empty[RowDescriptionField]).reverse
-    println(s"Number of Fields $numFields")
-    fs.foreach(x => println(x))
-    val rd = RowDescription(numFields, fs)
-    Future.value(rd)
+    Future.value(RowDescription(numFields, fs))
   }
 }
 case class RowDescriptionField(name: String, tableObjectId: Int, tableAttributeId: Short,
-  dataTypeObjectId: Int, dataTypeSize: Short, typeModifier: Int, formatCode: Short)
+  dataTypeObjectId: Int, dataTypeSize: Short, typeModifier: Int, formatCode: FormatCode)
 
 case class PasswordMessage(password: String) extends FrontendMessage {
   def encode: Packet = {
