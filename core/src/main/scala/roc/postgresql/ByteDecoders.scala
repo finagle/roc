@@ -9,12 +9,6 @@ trait ByteDecoder[A] {
   def fromBinary(bytes: Option[Array[Byte]]): Error Xor Option[A]
 }
 
-sealed trait FormatCode
-case object Text extends FormatCode
-case object Binary extends FormatCode
-
-object `package` extends ByteDecoderImplicits
-
 trait ByteDecoderImplicits {
 
   implicit val intByteDecoder: ByteDecoder[Int] = new ByteDecoder[Int] {

@@ -29,7 +29,7 @@ final class ClientDispatcher(trans: Transport[Packet, Packet],
   private[this] val state = new AtomicReference[Future[_]](Off)
 
   private[this] var backendKeyData: Option[BackendKeyData] = None
-  private[this] var ps: List[ParameterStatusMessage] = Nil
+  private[this] var ps: List[ParameterStatus] = Nil
 
   override def apply(req: Request): Future[Result] =
     state.get match {
@@ -41,22 +41,23 @@ final class ClientDispatcher(trans: Transport[Packet, Packet],
       case On => super.apply(req)
     }
 
-  def exchange(fm: FrontendMessage): Future[Message] = trans.write(fm.encode)
-    .rescue(wrapWriteException)
-    .before {
-      trans.read().flatMap(decodePacket(_))
+  def exchange[A <: FrontendMessage](fm: A)(implicit f: PacketEncoder[A]): Future[Message] = 
+    trans.write(f(fm)) rescue {
+      wrapWriteException
+    } before {
+      trans.read().flatMap(decode(_))
     }
 
   def authenticate: Future[Unit] = {
     val sm = StartupMessage(startup.username, startup.database)
     exchange(sm)
       .flatMap(message => message match {
-        case AuthenticationOk => Future.Done //Future.value(message)
+        case AuthenticationOk => Future.Done 
         case AuthenticationClearTxtPasswd => {
           exchange(new PasswordMessage(startup.password))
             .flatMap(response => response match {
-              case AuthenticationOk => Future.Done // Future.value(response)
-              case ReadyForQuery('I') => Future.Done // Future.value(response)
+              case AuthenticationOk => Future.Done 
+              case Idle => Future.Done
               case _ => Future.exception(new Exception())
             })
         }
@@ -65,29 +66,29 @@ final class ClientDispatcher(trans: Transport[Packet, Packet],
             startup.password, salt)
           exchange(new PasswordMessage(encryptedPasswd))
             .flatMap(response => response match {
-              case AuthenticationOk => Future.Done // Future.value(response)
-              case ReadyForQuery('I') => Future.Done // Future.value(response)
+              case AuthenticationOk => Future.Done 
+              case Idle => Future.Done
               case _ => Future.exception(new Exception())
             })
         }
-        case ReadyForQuery('I') => Future.Done // Future.value(message)
+        case Idle => Future.Done
         case r => println(r); Future.exception(new Exception())
       })
   }
 
   def completeStartup: Future[Unit] = {
 
-    def go(xs: List[ParameterStatusMessage], ys: List[BackendKeyData]):
-      Future[(List[ParameterStatusMessage], List[BackendKeyData])] = trans.read()
-      .flatMap{ packet => decodePacket(packet).flatMap{ msg => msg match {
-        case p: ParameterStatusMessage => go(p :: xs, ys)
-        case bkd: BackendKeyData       => go(xs, bkd :: ys)
-        case ReadyForQuery('I')        => Future.value((xs, ys))
+    def go(xs: List[ParameterStatus], ys: List[BackendKeyData]):
+      Future[(List[ParameterStatus], List[BackendKeyData])] = trans.read()
+      .flatMap{ packet => decode(packet).flatMap{ msg => msg match {
+        case p: ParameterStatus  => go(p :: xs, ys)
+        case bkd: BackendKeyData => go(xs, bkd :: ys)
+        case Idle => Future.value((xs, ys))
         case _ => Future.exception(new Exception())
       }}
     }
 
-    go(List.empty[ParameterStatusMessage], List.empty[BackendKeyData])
+    go(List.empty[ParameterStatus], List.empty[BackendKeyData])
       .flatMap(tuple => {
         ps = tuple._1
         backendKeyData = tuple._2.headOption
@@ -105,7 +106,7 @@ final class ClientDispatcher(trans: Transport[Packet, Packet],
    */
   override protected def dispatch(req: Request, rep: Promise[Result]): Future[Unit] = {
     val query = new Query(req.query)
-    trans.write(query.encode) rescue {
+    trans.write(encodePacket(query)) rescue {
       wrapWriteException
     } before {
       val signal = new Promise[Unit]
@@ -118,13 +119,13 @@ final class ClientDispatcher(trans: Transport[Packet, Packet],
 
     def go(xs: List[RowDescription], ys: List[DataRow]): 
       Future[(List[RowDescription], List[DataRow])] = trans.read()
-        .flatMap { packet => decodePacket(packet)
+        .flatMap { packet => decode(packet)
           .flatMap { message => req match {
           case q: Query => message match {
             case rd: RowDescription => go(rd :: xs, ys)
             case dr: DataRow => go(xs, dr :: ys)
             case cc: CommandComplete => go(xs, ys)
-            case ReadyForQuery('I') => signal.setDone(); Future.value((xs, ys))
+            case Idle => signal.setDone(); Future.value((xs, ys))
             case r => println(s"Got $r"); Future.exception(new Exception())
           }
           case _ => Future.exception(new Exception())
@@ -137,15 +138,40 @@ final class ClientDispatcher(trans: Transport[Packet, Packet],
       })
   }
 
-  private[this] def decodePacket(packet: Packet): Future[Message] = packet.messageType match {
+  private[this] def decode(packet: Packet): Future[Message] = packet.messageType match {
     case Some(mt) if mt === Message.AuthenticationRequest => AuthenticationMessage(packet)
-    case Some(mt) if mt === Message.ErrorMessage => ErrorMessage(packet)
-    case Some(mt) if mt === Message.ParameterStatus =>  ParameterStatusMessage(packet)
-    case Some(mt) if mt === Message.BackendKeyData => BackendKeyData(packet)
-    case Some(mt) if mt === Message.ReadyForQuery =>  ReadyForQuery(packet)
-    case Some(mt) if mt === Message.RowDescription => RowDescription(packet)
-    case Some(mt) if mt === Message.DataRow => DataRow(packet)
-    case Some(mt) if mt === Message.CommandComplete => CommandComplete(packet)
+    case Some(mt) if mt === Message.ErrorByte => decodePacket[ErrorMessage](packet) match {
+      case Xor.Right(r) => Future.value(r)
+      case Xor.Left(l)  => Future.exception(l)
+    }
+    case Some(mt) if mt === Message.ParameterStatusByte => 
+      decodePacket[ParameterStatus](packet) match {
+        case Xor.Right(r) => Future.value(r)
+        case Xor.Left(l)  => Future.exception(l)
+      }
+    case Some(mt) if mt === Message.BackendKeyDataByte => 
+      decodePacket[BackendKeyData](packet) match {
+        case Xor.Right(r) => Future.value(r)
+        case Xor.Left(l)  => Future.exception(l)
+      }
+    case Some(mt) if mt === Message.ReadyForQueryByte => decodePacket[ReadyForQuery](packet) match {
+      case Xor.Right(r) => Future.value(r)
+      case Xor.Left(l)  => Future.exception(l)
+    }
+    case Some(mt) if mt === Message.RowDescriptionByte => 
+      decodePacket[RowDescription](packet) match {
+        case Xor.Right(r) => Future.value(r)
+        case Xor.Left(l)  => Future.exception(l)
+      }
+    case Some(mt) if mt === Message.DataRowByte => decodePacket[DataRow](packet) match {
+      case Xor.Right(r) => Future.value(r)
+      case Xor.Left(l)  => Future.exception(l)
+    }
+    case Some(mt) if mt === Message.CommandCompleteByte => 
+      decodePacket[CommandComplete](packet) match {
+        case Xor.Right(r) => Future.value(r)
+        case Xor.Left(l)  => Future.exception(l)
+      }
     case Some(m) => {
         println(m)
         println("INside Some(m)")
