@@ -13,16 +13,16 @@ import scala.collection.mutable.ListBuffer
 
 sealed trait Message
 object Message {
-  val AuthenticationRequest: Char = 'R'
-  val ErrorByte: Char             = 'E'
-  val ParameterStatusByte: Char   = 'S'
-  val ReadyForQueryByte: Char     = 'Z'
-  val BackendKeyDataByte: Char    = 'K'
-  val RowDescriptionByte: Char    = 'T'
-  val DataRowByte: Char           = 'D'
-  val CommandCompleteByte: Char   = 'C'
-  val PasswordMessageByte: Char   = 'p'
-  val QueryMessageByte: Char      = 'Q'
+  val AuthenticationMessageByte: Char = 'R'
+  val ErrorByte: Char                 = 'E'
+  val ParameterStatusByte: Char       = 'S'
+  val ReadyForQueryByte: Char         = 'Z'
+  val BackendKeyDataByte: Char        = 'K'
+  val RowDescriptionByte: Char        = 'T'
+  val DataRowByte: Char               = 'D'
+  val CommandCompleteByte: Char       = 'C'
+  val PasswordMessageByte: Char       = 'p'
+  val QueryMessageByte: Char          = 'Q'
 }
 
 sealed trait FrontendMessage extends Message
@@ -51,23 +51,24 @@ case class ErrorMessage(byte: Char, reason: String) extends BackendMessage
 
 sealed trait AuthenticationMessage extends BackendMessage
 object AuthenticationMessage {
-
-  def apply(packet: Packet): Future[AuthenticationMessage] = {
-    val br = BufferReader(packet.body)
-    br.readInt match {
-      case 0 => Future.value(AuthenticationOk)
-      case 3 => Future.value(AuthenticationClearTxtPasswd)
-      case 5 => {
-        val salt = br.take(4)
-        Future.value(new AuthenticationMD5Passwd(salt))
-      }
-      case x => Future.exception(new InvalidAuthenticationRequest(x))
-    }
+  def apply(tuple: (Int, Option[Array[Byte]])): Error Xor AuthenticationMessage = tuple match {
+    case (0, None) => Xor.Right(AuthenticationOk)
+    case (3, None) => Xor.Right(AuthenticationClearTxtPasswd)
+    case (5, Some(bytes)) => Xor.Right(new AuthenticationMD5Passwd(bytes))
+    case (x, _)           => Xor.Left(new UnknownAuthenticationRequestFailure(x))
   }
 }
 case object AuthenticationOk extends AuthenticationMessage
 case object AuthenticationClearTxtPasswd extends AuthenticationMessage
-case class AuthenticationMD5Passwd(salt: Array[Byte]) extends AuthenticationMessage
+case class AuthenticationMD5Passwd(salt: Array[Byte]) extends AuthenticationMessage {
+  def canEqual(a: Any) = a.isInstanceOf[AuthenticationMD5Passwd]
+
+  final override def equals(that: Any): Boolean = that match {
+    case x: AuthenticationMD5Passwd => x.canEqual(this) && salt.length == x.salt.length &&
+      (salt sameElements x.salt)
+    case _ => false
+  }
+}
 
 case class ParameterStatus(parameter: String, value: String) extends BackendMessage
 case class BackendKeyData(processId: Int, secretKey: Int) extends BackendMessage

@@ -41,6 +41,11 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
   DataRow
     should return Xor.Right(DataRow) when given a valid Packet                      ${DR().testValidPacket}
     should return Xor.Left(PacketDecodingFailure) when given an invalid Packet      ${DR().testInvalidPacket}
+
+  AuthenticationMessages
+    should return Xor.Right(AuthenticationMessage) when given a valid Message Int              ${AM().testValid}
+    should return Xor.Left(UnknownAuthenticationRequestFailure) when given an Unknown Request  ${AM().testUnkownRequestType}
+    should return Xor.Left(PacketDecodingFailure) when given an invalid Packet                 ${AM().testInvalidPacket}
                                                                                   """
 
   case class ErrorMsg() extends generators.ErrorGen {
@@ -136,6 +141,30 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
       val packet = Packet(Some(Message.DataRowByte), Buffer(Array.empty[Byte]))
       decodePacket[DataRow](packet) must_==
         Xor.Left(new PacketDecodingFailure("Not enough readable bytes - Need 2, maximum is 0"))
+    }
+  }
+
+  case class AM() extends generators.AuthenticationMessagesGen {
+    val testValid = forAll(genValidAuthMessageContainer) { (amc: AuthMessageContainer) =>
+      val decodedPacket = decodePacket[AuthenticationMessage](amc.packet)
+      amc.requestType match {
+        case 0  => decodedPacket must_== Xor.Right(AuthenticationOk)
+        case 3  => decodedPacket must_== Xor.Right(AuthenticationClearTxtPasswd)
+        case 5  => decodedPacket must_== Xor.Right(new AuthenticationMD5Passwd(amc.salt))
+        case x  => decodedPacket must_== Xor.Left(new ReadyForQueryDecodingFailure('c'))
+      }
+    }
+
+    val testUnkownRequestType = 
+      forAll(genUnknownReqAuthMessageContainer) { (amc: AuthMessageContainer) =>
+        decodePacket[AuthenticationMessage](amc.packet) must_==
+         Xor.Left(new UnknownAuthenticationRequestFailure(amc.requestType))
+      }
+
+    val testInvalidPacket = {
+      val packet = Packet(Some(Message.AuthenticationMessageByte), Buffer(Array.empty[Byte]))
+      decodePacket[AuthenticationMessage](packet) must_==
+        Xor.Left(new PacketDecodingFailure("Not enough readable bytes - Need 4, maximum is 0"))
     }
   }
 }

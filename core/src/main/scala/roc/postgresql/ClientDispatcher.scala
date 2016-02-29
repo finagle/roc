@@ -139,7 +139,11 @@ final class ClientDispatcher(trans: Transport[Packet, Packet],
   }
 
   private[this] def decode(packet: Packet): Future[Message] = packet.messageType match {
-    case Some(mt) if mt === Message.AuthenticationRequest => AuthenticationMessage(packet)
+    case Some(mt) if mt === Message.AuthenticationMessageByte =>
+      decodePacket[AuthenticationMessage](packet) match {
+        case Xor.Right(r) => Future.value(r)
+        case Xor.Left(l)  => Future.exception(l)
+      }
     case Some(mt) if mt === Message.ErrorByte => decodePacket[ErrorMessage](packet) match {
       case Xor.Right(r) => Future.value(r)
       case Xor.Left(l)  => Future.exception(l)
