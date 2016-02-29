@@ -27,9 +27,23 @@ final class UnexpectedNoneFailure(message: String) extends Error {
   final override def getMessage: String = message
 }
 
-final class InvalidAuthenticationRequest(authType: Int) extends Error {
-  final override def getMessage: String = 
-    s"Got invalid and unkown Authentication Request: $authType"
+/** Denotes, as of Postgresql Protocol 3.0, an unknown Authentication Request Type.
+  *
+  * @constructor create a new unknown authentication request failure with a request type
+  * @param  requestType the integer representing the unkown request type
+  * @see [[http://www.postgresql.org/docs/current/static/protocol-message-formats.html 
+      Postgresql Message Protocol]]
+ */
+final class UnknownAuthenticationRequestFailure(requestType: Int) extends Error {
+  final override def getMessage: String =
+    s"Unknown Authentication Request Type: $requestType"
+
+  def canEqual(a: Any) = a.isInstanceOf[UnknownAuthenticationRequestFailure]
+
+  final override def equals(that: Any): Boolean = that match {
+    case x: UnknownAuthenticationRequestFailure => x.canEqual(this) && x.getMessage == getMessage
+    case _ => false
+  }
 }
 
 final class ColumnNotFoundException(symbol: Symbol) extends Error {

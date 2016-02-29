@@ -122,4 +122,19 @@ trait PacketDecoderImplicits {
         new DataRow(columns, columnBytes)
       }).leftMap(t => new PacketDecodingFailure(t.getMessage))
     }
+
+  implicit val authenticationMessagePacketDecoder: PacketDecoder[AuthenticationMessage] = 
+    new PacketDecoder[AuthenticationMessage] {
+      def apply(p: Packet): Result[AuthenticationMessage] = Xor.catchNonFatal({
+        val br = BufferReader(p.body)
+        br.readInt match {
+          case 0 => (0, None)
+          case 3 => (3, None)
+          case 5 => (5, Some(br.take(4)))
+          case x => (x, None)
+        }
+      })
+      .leftMap(t => new PacketDecodingFailure(t.getMessage))
+      .flatMap(AuthenticationMessage(_))
+    }
 }
