@@ -212,33 +212,48 @@ object generators {
   }
 
   trait AuthenticationMessagesGen extends ScalaCheck {
-    case class AuthMessageContainer(requestType: Int, salt: Array[Byte], packet: Packet)
+    case class AuthMessageContainer(requestType: Int, salt: Array[Byte], authBytes: Array[Byte],
+      packet: Packet)
 
-    private val validMessageInts = 0 :: 3 :: 5 :: Nil
-    protected lazy val genAuthMessageInt: Gen[Int] = Gen.oneOf(validMessageInts)
+    private val knownMessageInts = 0 :: 2 :: 3 :: 5 :: 6 :: 7 :: 8 :: 9 :: Nil
+    protected lazy val genAuthMessageInt: Gen[Int] = Gen.oneOf(knownMessageInts)
     protected lazy val genUnknownMessageInt: Gen[Int] =
-      arbitrary[Int] suchThat(n => !validMessageInts.contains(n))
+      arbitrary[Int] suchThat(n => !knownMessageInts.contains(n))
     protected lazy val genByte: Gen[Byte] = arbitrary[Byte]
     protected lazy val genSalt: Gen[Array[Byte]] = Gen.containerOfN[Array, Byte](4, genByte)
+    protected lazy val genAuthBytes: Gen[Array[Byte]] = Gen.containerOf[Array, Byte](genByte)
 
     protected lazy val genValidAuthMessageContainer: Gen[AuthMessageContainer] = for {
       requestType   <-  genAuthMessageInt
       salt          <-  genSalt
-    } yield buildContainer(requestType, salt)
+      authBytes     <-  genAuthBytes
+    } yield buildContainer(requestType, salt, authBytes)
     protected lazy val genUnknownReqAuthMessageContainer: Gen[AuthMessageContainer] = for {
       requestType   <-  genUnknownMessageInt
       salt          <-  genSalt
-    } yield buildContainer(requestType, salt)
+      authBytes     <-  genAuthBytes
+    } yield buildContainer(requestType, salt, authBytes)
 
-    private[this] def buildContainer(requestType: Int, salt: Array[Byte]): AuthMessageContainer = {
-      val length = if(requestType == 5) 8 else 4
-      val bw = BufferWriter(new Array[Byte](length))
-      bw.writeInt(requestType)
-      if(requestType == 5) bw.writeBytes(salt)
+    private[this] def buildContainer(requestType: Int, salt: Array[Byte], 
+      authBytes: Array[Byte]): AuthMessageContainer = {
+        val length = if(requestType == 5) {
+          8 
+        } else if(requestType == 8) {
+          authBytes.length + 4
+        } else {
+          4
+        }
+        val bw = BufferWriter(new Array[Byte](length))
+        bw.writeInt(requestType)
+        if(requestType == 5) {
+          bw.writeBytes(salt)
+        } else if(requestType == 8) {
+          bw.writeBytes(authBytes)
+        }
 
-      val packet = new Packet(Some(Message.AuthenticationMessageByte), Buffer(bw.toBytes))
-      new AuthMessageContainer(requestType, salt, packet)
-    }
+        val packet = new Packet(Some(Message.AuthenticationMessageByte), Buffer(bw.toBytes))
+        new AuthMessageContainer(requestType, salt, authBytes, packet)
+      }
   }
 
   trait FormatCodeGen extends ScalaCheck {

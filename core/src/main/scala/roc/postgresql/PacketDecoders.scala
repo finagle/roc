@@ -129,9 +129,14 @@ trait PacketDecoderImplicits {
         val br = BufferReader(p.body)
         br.readInt match {
           case 0 => (0, None)
+          case 2 => (2, None)
           case 3 => (3, None)
           case 5 => (5, Some(br.take(4)))
-          case x => (x, None)
+          case 6 => (6, None)
+          case 7 => (7, None)
+          case 8 => (8, Some(br.takeRest))
+          case 9 => (9, None)
+          case n => (n, None)
         }
       })
       .leftMap(t => new PacketDecodingFailure(t.getMessage))

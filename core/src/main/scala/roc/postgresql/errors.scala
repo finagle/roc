@@ -46,6 +46,24 @@ final class UnknownAuthenticationRequestFailure(requestType: Int) extends Error 
   }
 }
 
+/** Denotes an Unsupported Authentication Request
+  * @constructor create a new unsupported authentication request failure with a request type
+  * @param messageType the Authentication Message that is unsupported
+  * @see [[http://www.postgresql.org/docs/current/static/protocol-message-formats.html 
+      Postgresql Message Protocol]]
+ */
+final class UnsupportedAuthenticationFailure(messageType: String) extends Error {
+  final override def getMessage: String =
+    s"Unsupported Authentication Failure. $messageType authentication is not supported."
+
+    def canEqual(a: Any) = a.isInstanceOf[UnsupportedAuthenticationFailure]
+
+    final override def equals(that: Any): Boolean = that match {
+      case x: UnsupportedAuthenticationFailure => x.canEqual(this) && x.getMessage == getMessage
+      case _ => false
+    }
+}
+
 final class ColumnNotFoundException(symbol: Symbol) extends Error {
   final override def getMessage: String = s"Could not find column $symbol in Result"
 }
