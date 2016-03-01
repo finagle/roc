@@ -149,9 +149,15 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
       val decodedPacket = decodePacket[AuthenticationMessage](amc.packet)
       amc.requestType match {
         case 0  => decodedPacket must_== Xor.Right(AuthenticationOk)
+        case 2  => decodedPacket must_== Xor.Right(AuthenticationKerberosV5)
         case 3  => decodedPacket must_== Xor.Right(AuthenticationClearTxtPasswd)
         case 5  => decodedPacket must_== Xor.Right(new AuthenticationMD5Passwd(amc.salt))
-        case x  => decodedPacket must_== Xor.Left(new ReadyForQueryDecodingFailure('c'))
+        case 6  => decodedPacket must_== Xor.Right(AuthenticationSCMCredential)
+        case 7  => decodedPacket must_== Xor.Right(AuthenticationGSS)
+        case 8  => decodedPacket must_== Xor.Right(new AuthenticationGSSContinue(amc.authBytes))
+        case 9  => decodedPacket must_== Xor.Right(AuthenticationSSPI)
+        case x  => decodedPacket must_==
+          Xor.Left(new UnknownAuthenticationRequestFailure(amc.requestType))
       }
     }
 

@@ -52,9 +52,14 @@ case class ErrorMessage(byte: Char, reason: String) extends BackendMessage
 sealed trait AuthenticationMessage extends BackendMessage
 object AuthenticationMessage {
   def apply(tuple: (Int, Option[Array[Byte]])): Error Xor AuthenticationMessage = tuple match {
-    case (0, None) => Xor.Right(AuthenticationOk)
-    case (3, None) => Xor.Right(AuthenticationClearTxtPasswd)
+    case (0, None)        => Xor.Right(AuthenticationOk)
+    case (2, None)        => Xor.Right(AuthenticationKerberosV5)
+    case (3, None)        => Xor.Right(AuthenticationClearTxtPasswd)
     case (5, Some(bytes)) => Xor.Right(new AuthenticationMD5Passwd(bytes))
+    case (6, None)        => Xor.Right(AuthenticationSCMCredential)
+    case (7, None)        => Xor.Right(AuthenticationGSS)
+    case (8, Some(bytes)) => Xor.Right(new AuthenticationGSSContinue(bytes))
+    case (9, None)        => Xor.Right(AuthenticationSSPI)
     case (x, _)           => Xor.Left(new UnknownAuthenticationRequestFailure(x))
   }
 }
@@ -66,6 +71,21 @@ case class AuthenticationMD5Passwd(salt: Array[Byte]) extends AuthenticationMess
   final override def equals(that: Any): Boolean = that match {
     case x: AuthenticationMD5Passwd => x.canEqual(this) && salt.length == x.salt.length &&
       (salt sameElements x.salt)
+    case _ => false
+  }
+}
+
+case object AuthenticationKerberosV5 extends AuthenticationMessage
+case object AuthenticationSCMCredential extends AuthenticationMessage
+case object AuthenticationGSS extends AuthenticationMessage
+case object AuthenticationSSPI extends AuthenticationMessage
+case class AuthenticationGSSContinue(authBytes: Array[Byte]) extends AuthenticationMessage {
+  def canEqual(a: Any) = a.isInstanceOf[AuthenticationGSSContinue]
+
+  final override def equals(that: Any): Boolean = that match {
+    case x: AuthenticationGSSContinue => x.canEqual(this) && 
+      authBytes.length == x.authBytes.length &&
+      (authBytes sameElements x.authBytes)
     case _ => false
   }
 }
