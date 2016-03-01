@@ -16,9 +16,9 @@ object PacketDecoder {
 trait PacketDecoderImplicits {
   import PacketDecoder._
 
-  implicit val errorMessagePacketDecoder: PacketDecoder[ErrorMessage] = 
-    new PacketDecoder[ErrorMessage] {
-      def apply(p: Packet): Result[ErrorMessage] =
+  implicit val errorMessagePacketDecoder: PacketDecoder[ErrorResponse] = 
+    new PacketDecoder[ErrorResponse] {
+      def apply(p: Packet): Result[ErrorResponse] =
         Xor.Left(new PacketDecodingFailure("Error messages not implemented yet"))
     }
 

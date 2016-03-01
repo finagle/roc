@@ -50,7 +50,7 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
 
   case class ErrorMsg() extends generators.ErrorGen {
     val test = forAll(errorPacket) { (p: Packet) => 
-      decodePacket[ErrorMessage](p) must_== 
+      decodePacket[ErrorResponse](p) must_== 
         Xor.Left(new PacketDecodingFailure("Error messages not implemented yet"))
     }
   }
