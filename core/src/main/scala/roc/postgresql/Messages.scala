@@ -47,7 +47,7 @@ object PasswordMessage {
 
 sealed trait BackendMessage extends Message
 
-case class ErrorMessage(byte: Char, reason: String) extends BackendMessage
+case class ErrorResponse(byte: Char, reason: String) extends BackendMessage
 
 sealed trait AuthenticationMessage extends BackendMessage
 object AuthenticationMessage {

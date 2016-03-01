@@ -13,6 +13,7 @@ final class ErrorsSpec extends Specification with ScalaCheck { def is = s2"""
     ReadyForQueryDecodingFailure should have correct message      $readyForQueryDecodingFailure
     UnknownAuthenticationFailure should have correct message      $unknownAuthRequestFailure
     UnsupportedAuthenticationFailure should have correct message  $unsupportedAuthFailure
+    PostgresqlStateMachineFailure should have correct message     $postgresqlStateMachineFailure
                                                                          """
 
   val unknownPostgresTypeFailure = forAll { n: Int =>
@@ -37,6 +38,12 @@ final class ErrorsSpec extends Specification with ScalaCheck { def is = s2"""
     val expectedMessage =
       s"Unsupported Authentication Failure. $s authentication is not supported."
     val error           = new UnsupportedAuthenticationFailure(s)
+    error.getMessage must_== expectedMessage
+  }
+  
+  val postgresqlStateMachineFailure = forAll { (s1: String, s2: String) =>
+    val expectedMessage = s"State Transition from $s1 -> $s2 is undefined."
+    val error           = new PostgresqlStateMachineFailure(s1, s2)
     error.getMessage must_== expectedMessage
   }
 }

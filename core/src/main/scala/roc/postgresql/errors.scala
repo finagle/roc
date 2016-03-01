@@ -90,3 +90,23 @@ final class ReadyForQueryDecodingFailure(unknownChar: Char) extends Error {
     case _ => false
   }
 }
+
+
+/** Denotes a State Transition with the Postgresql State Machine that should be impossible.
+  *
+  * The Postgresql 3.0 Protocol describes serveral specific connection State Machines depending
+  * on the phase of the connection - StartupPhase ( made up of Authentication Phase and
+  * Server Process Startup Phase ), SimpleQuery Phase. During these phases, it is possible
+  * for a Postgresql Server to transmit a Message that does not make sense given the current
+  * State of the Connection. In practice, these should be extremely rare.
+  * @constructor create a new postgresql state machine failure with a messsage type
+  * @param transmittedMessage the Message transmitted to the Postgresql Server
+  * @param recievedMessage the Message recieved from the Postgresql Server that caused the state 
+  *     transition failure
+  * @see [[http://www.postgresql.org/docs/current/static/protocol-flow.html]]
+ */
+final class PostgresqlStateMachineFailure(transmittedMessage: String, receivedMessage: String)
+  extends Error {
+    final override def getMessage: String =
+      s"State Transition from $transmittedMessage -> $receivedMessage is undefined."
+}
