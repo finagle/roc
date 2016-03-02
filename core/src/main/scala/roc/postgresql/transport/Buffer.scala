@@ -1,11 +1,10 @@
-package com.github.finagle
 package roc
 package postgresql
 package transport
 
-import org.jboss.netty.buffer.{ChannelBuffer, ChannelBuffers}
 import java.nio.ByteOrder
 import java.nio.charset.Charset
+import org.jboss.netty.buffer.{ChannelBuffer, ChannelBuffers}
 
 object Buffer {
   val NullLength = -1 // denotes a SQL NULL value when reading a length coded binary.

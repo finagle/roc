@@ -1,4 +1,3 @@
-package com.github.finagle
 package roc
 package postgresql
 package transport
@@ -32,7 +31,7 @@ private[roc] final class PacketFrameDecoder extends FrameDecoder {
 
 }
 
-private[roc] final class PacketEncoder extends SimpleChannelDownstreamHandler {
+private[roc] final class PacketWriter extends SimpleChannelDownstreamHandler {
   override def writeRequested(ctx: ChannelHandlerContext, evt: MessageEvent) =
     evt.getMessage match {
       case p: Packet =>
@@ -58,7 +57,7 @@ private[roc] object PostgresqlClientPipelineFactory extends ChannelPipelineFacto
   def getPipeline = {
     val pipeline = Channels.pipeline()
     pipeline.addLast("pgPacketDecoder", new PacketFrameDecoder)
-    pipeline.addLast("pgPacketEncoder", new PacketEncoder)
+    pipeline.addLast("pgPacketWriter", new PacketWriter)
     pipeline
   }
 }

@@ -1,7 +1,7 @@
-package com.github.finagle
 package roc
 
-import com.github.finagle.roc.postgresql.transport.Packet
+import roc.postgresql.transport.{PacketDecoder, PacketDecoderImplicits, Packet, PacketEncoder, 
+  PacketEncoderImplicits}
 import java.nio.charset.StandardCharsets
 
 package object postgresql

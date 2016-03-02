@@ -1,4 +1,3 @@
-package com.github.finagle
 package roc
 package postgresql
 package transport

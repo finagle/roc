@@ -1,11 +1,9 @@
-package com.github.finagle
 package roc
 package postgresql
 
-import com.twitter.finagle.ServiceFactory
 import com.twitter.finagle._
+import com.twitter.finagle.ServiceFactory
 import com.twitter.util.{Closable, Future, Time}
-
 
 object Client {
   def apply (factory: ServiceFactory[Request, Result]): Client = 
