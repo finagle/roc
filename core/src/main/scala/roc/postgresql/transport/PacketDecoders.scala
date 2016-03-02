@@ -1,19 +1,18 @@
-package com.github.finagle
 package roc
 package postgresql
+package transport
 
 import cats.data.Xor
-import com.github.finagle.roc.postgresql.transport.{Buffer, BufferReader, Packet}
 import scala.collection.mutable.ListBuffer
 
-private[postgresql] trait PacketDecoder[A <: BackendMessage] {
+private[roc] trait PacketDecoder[A <: BackendMessage] {
   def apply(p: Packet): PacketDecoder.Result[A]
 }
-object PacketDecoder {
+private[postgresql] object PacketDecoder {
   final type Result[A] = Xor[Error, A]
 }
 
-trait PacketDecoderImplicits {
+private[postgresql] trait PacketDecoderImplicits {
   import PacketDecoder._
 
   implicit val errorMessagePacketDecoder: PacketDecoder[ErrorResponse] = 

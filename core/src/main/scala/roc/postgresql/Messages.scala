@@ -1,14 +1,13 @@
-package com.github.finagle
 package roc
 package postgresql
 
 import cats.data.Xor
 import cats.std.all._
 import cats.syntax.eq._
-import com.github.finagle.roc.postgresql.transport.{Buffer, BufferReader, BufferWriter, Packet}
 import com.twitter.util.Future
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+import roc.postgresql.transport.{Buffer, BufferReader, BufferWriter, Packet}
 import scala.collection.mutable.ListBuffer
 
 sealed trait Message

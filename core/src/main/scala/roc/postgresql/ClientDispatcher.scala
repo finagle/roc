@@ -1,15 +1,14 @@
-package com.github.finagle
 package roc
 package postgresql
 
 import cats.data.Xor
 import cats.std.all._
 import cats.syntax.eq._
-import com.github.finagle.roc.postgresql.transport.Packet
 import com.twitter.finagle.dispatch.GenSerialClientDispatcher
 import com.twitter.finagle.transport.Transport
 import com.twitter.finagle.{Service, WriteException}
 import com.twitter.util.{Future, Promise}
+import roc.postgresql.transport.{Packet, PacketEncoder}
 
 private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
   startup: Startup)

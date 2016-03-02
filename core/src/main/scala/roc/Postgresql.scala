@@ -1,4 +1,3 @@
-package com.github.finagle
 package roc
 
 import com.twitter.finagle._
@@ -10,10 +9,8 @@ import com.twitter.finagle.transport.Transport
 import com.twitter.finagle.util.DefaultTimer
 import com.twitter.util.{Await, Duration, Future}
 import java.net.SocketAddress
-
-import com.github.finagle.roc.postgresql.transport.{Packet, PostgresqlClientPipelineFactory}
-import com.github.finagle.roc.postgresql.{Request, Result}
-import com.github.finagle.roc.postgresql.Startup
+import roc.postgresql.transport.{Packet, PostgresqlClientPipelineFactory}
+import roc.postgresql.{Request, Result, Startup}
 
 trait PostgresqlRichClient { self: com.twitter.finagle.Client[Request, Result] => 
 

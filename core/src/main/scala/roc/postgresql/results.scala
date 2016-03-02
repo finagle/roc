@@ -1,11 +1,10 @@
-package com.github.finagle
 package roc
 package postgresql
 
 import cats.data.Xor
 import cats.Show
-import com.github.finagle.roc.postgresql.transport.BufferReader
 import com.twitter.util.Future
+import roc.postgresql.transport.BufferReader
 
 final class Result(rowDescription: RowDescription, data: List[DataRow]) {
 
