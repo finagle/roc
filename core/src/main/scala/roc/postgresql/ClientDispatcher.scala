@@ -7,7 +7,7 @@ import cats.syntax.eq._
 import com.twitter.finagle.dispatch.GenSerialClientDispatcher
 import com.twitter.finagle.transport.Transport
 import com.twitter.finagle.{Service, WriteException}
-import com.twitter.util.{Future, Promise}
+import com.twitter.util.{Future, Promise, Time}
 import roc.postgresql.transport.{Packet, PacketEncoder}
 
 private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
@@ -61,37 +61,52 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
    */
   override protected def dispatch(req: Request, rep: Promise[Result]): Future[Unit] = {
     val query = new Query(req.query)
-    trans.write(encodePacket(query)) rescue {
-      wrapWriteException
-    } before {
-      val signal = new Promise[Unit]
-      rep.become(drainTransport(query, signal))
-      signal
-    }
+    for {
+      _      <- trans.write(encodePacket(query)).rescue(wrapWriteException)
+      signal =  rep.become(readTransport(query, new Promise[Unit]))
+    } yield signal 
   }
 
-  private def drainTransport(req: FrontendMessage, signal: Promise[Unit]): Future[Result] = {
+  private[this] def readTransport(req: Transmission, signal: Promise[Unit]): Future[Result] =
+    req match {
+      case Query(_) => readQueryTx(signal)
+    }
 
-    def go(xs: List[RowDescription], ys: List[DataRow]): 
-      Future[(List[RowDescription], List[DataRow])] = trans.read()
-        .flatMap { packet => decode(packet)
-          .flatMap { message => req match {
-          case q: Query => message match {
-            case rd: RowDescription => go(rd :: xs, ys)
-            case dr: DataRow => go(xs, dr :: ys)
-            case cc: CommandComplete => go(xs, ys)
-            case Idle => signal.setDone(); Future.value((xs, ys))
-            case r => println(s"Got $r"); Future.exception(new Exception())
-          }
-          case _ => Future.exception(new Exception())
-          }
+  private[this] def readQueryTx(signal: Promise[Unit]): Future[Result] = {
+
+    type Descriptions = List[RowDescription]
+    type Rows         = List[DataRow]
+    def go(xs: Descriptions, ys: Rows, str: String): Future[(Descriptions, Rows, String)] = 
+      trans.read().flatMap(packet => Message.decode(packet) match {
+        case Xor.Right(RowDescription(a,b)) => go(RowDescription(a,b) :: xs, ys, str)
+        case Xor.Right(DataRow(a,b))        => go(xs, DataRow(a,b) :: ys, str)
+        case Xor.Right(EmptyQueryResponse)  => go(xs, ys, "EmptyQueryResponse")
+        case Xor.Right(CommandComplete(x))  => go(xs, ys, x)
+        case Xor.Right(Idle)                => Future.value((xs, ys, str))
+        case Xor.Right(u) => 
+          Future.exception(new PostgresqlStateMachineFailure("Query", u.toString))
+        case Xor.Left(l)  => Future.exception(l)
         }
-      }
+      )
 
-      go(List.empty[RowDescription], List.empty[DataRow]).map( tuple => {
-        new Result(tuple._1.head, tuple._2)
+    go(List.empty[RowDescription], List.empty[DataRow], "")
+      .map(tuple => {
+        val f = signal.setDone()
+        new Result(tuple._1, tuple._2, tuple._3)
       })
   }
+
+  /** Closes the connection.
+    *
+    * We make a best faith effort to inform the Postgresql Server that we are terminating the
+    * connection prior to closure.
+    * @param deadline the deadline by which the connection must be closed
+    */
+  override def close(deadline: Time): Future[Unit] =
+    trans.write(encodePacket(new Terminate())).ensure {
+      super.close(deadline)
+      ()
+    }
 
   private[this] def decode(packet: Packet): Future[Message] = packet.messageType match {
     case Some(mt) if mt === Message.AuthenticationMessageByte =>
@@ -131,6 +146,7 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
         case Xor.Right(r) => Future.value(r)
         case Xor.Left(l)  => Future.exception(l)
       }
+    case Some(mt) if mt === Message.EmptyQueryResponseByte => Future.value(EmptyQueryResponse)
     case Some(m) => {
         println(m)
         println("INside Some(m)")
@@ -164,11 +180,12 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
     })
   }
 
-  private[this] type ServerProcessValues = (List[ParameterStatus], List[BackendKeyData])
   private[this] def serverProcessStartupPhase: Future[Unit] = {
 
-    def go(safetyCheck: Int, xs: List[ParameterStatus], 
-      ys: List[BackendKeyData]): Future[ServerProcessValues] = safetyCheck match {
+    type ParamStatuses = List[ParameterStatus]
+    type BKDs = List[BackendKeyData]
+    def go(safetyCheck: Int, xs: ParamStatuses, ys: BKDs): Future[(ParamStatuses, BKDs)] = 
+      safetyCheck match {
         // TODO - create an Error type for this
         case x if x > 1000 => Future.exception(new Exception())
         case x if x < 1000 => trans.read().flatMap(packet =>
@@ -214,6 +231,7 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
       case u => Future.exception(new PostgresqlStateMachineFailure("PasswordMessage", u.toString))
     })
   }
+
 }
 object ClientDispatcher {
 

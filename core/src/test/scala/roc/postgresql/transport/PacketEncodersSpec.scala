@@ -24,6 +24,9 @@ final class PacketEncodersSpec extends Specification with ScalaCheck { def is = 
   QueryMessage
     should encode starting with 'Q'                 $qEncodeMessageType
     should encode a valid Packet Body               $qEncodeBody
+
+  TerminateMessage
+    should encode starting with 'X'                 $tEncodeMessageType
                                                                                   """
 
   val pmEncodeMessageType = forAll { (pm: PasswordMessage) => 
@@ -80,6 +83,10 @@ final class PacketEncodersSpec extends Specification with ScalaCheck { def is = 
     encodePacket(q).body.underlying must_== packet.body.underlying
   }
 
+  val tEncodeMessageType = forAll { t: Terminate =>
+    encodePacket(t).messageType must_== Some('X')
+  }
+
   lazy val genPasswordMessage: Gen[PasswordMessage] = for {
     password    <-  arbitrary[String]
   } yield new PasswordMessage(password)
@@ -101,6 +108,9 @@ final class PacketEncodersSpec extends Specification with ScalaCheck { def is = 
   } yield new Query(queryString)
   implicit lazy val implicitQuery: Arbitrary[Query] = 
     Arbitrary(genQuery)
+
+  lazy val genTerminate: Gen[Terminate] = new Terminate()
+  implicit lazy val implicitTerminate: Arbitrary[Terminate] = Arbitrary(genTerminate)
 
   override val ff = fragmentFactory
 }

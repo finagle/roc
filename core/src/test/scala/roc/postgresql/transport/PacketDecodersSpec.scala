@@ -45,6 +45,9 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
     should return Xor.Right(AuthenticationMessage) when given a valid Message Int              ${AM().testValid}
     should return Xor.Left(UnknownAuthenticationRequestFailure) when given an Unknown Request  ${AM().testUnkownRequestType}
     should return Xor.Left(PacketDecodingFailure) when given an invalid Packet                 ${AM().testInvalidPacket}
+
+  NoticeResponseMessage
+    should return a PacketDecodingFailure("Notice Responses not implemented yet     ${NR().test}
                                                                                   """
 
   case class ErrorMsg() extends generators.ErrorGen {
@@ -170,6 +173,13 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
       val packet = Packet(Some(Message.AuthenticationMessageByte), Buffer(Array.empty[Byte]))
       decodePacket[AuthenticationMessage](packet) must_==
         Xor.Left(new PacketDecodingFailure("Not enough readable bytes - Need 4, maximum is 0"))
+    }
+  }
+
+  case class NR() extends generators.NoticeResponseGen {
+    val test = forAll(errorPacket) { (p: Packet) => 
+      decodePacket[NoticeResponse](p) must_== 
+        Xor.Left(new PacketDecodingFailure("Notice Response Messages not implemented yet"))
     }
   }
 }

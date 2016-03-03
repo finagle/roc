@@ -1,6 +1,7 @@
 package roc
 package postgresql
 
+import algebra.Eq
 import cats.data.Xor
 import cats.std.all._
 import cats.syntax.eq._
@@ -10,7 +11,7 @@ import java.security.MessageDigest
 import roc.postgresql.transport.{Buffer, BufferReader, BufferWriter, Packet}
 import scala.collection.mutable.ListBuffer
 
-sealed trait Message
+sealed trait Message 
 object Message {
   val AuthenticationMessageByte: Char = 'R'
   val ErrorByte: Char                 = 'E'
@@ -22,12 +23,37 @@ object Message {
   val CommandCompleteByte: Char       = 'C'
   val PasswordMessageByte: Char       = 'p'
   val QueryMessageByte: Char          = 'Q'
+  val EmptyQueryResponseByte: Char    = 'I'
+  val TerminateByte: Char             = 'X'
+  val NoticeResponseByte: Char        = 'N'
+
+  private[roc] def decode(packet: Packet): Xor[Error, Message] = packet.messageType match {
+    case Some(mt) if mt === AuthenticationMessageByte => decodePacket[AuthenticationMessage](packet)
+    case Some(mt) if mt === ErrorByte => decodePacket[ErrorResponse](packet)
+    case Some(mt) if mt === ParameterStatusByte => decodePacket[ParameterStatus](packet)
+    case Some(mt) if mt === BackendKeyDataByte => decodePacket[BackendKeyData](packet)
+    case Some(mt) if mt === ReadyForQueryByte => decodePacket[ReadyForQuery](packet)
+    case Some(mt) if mt === RowDescriptionByte => decodePacket[RowDescription](packet)
+    case Some(mt) if mt === DataRowByte => decodePacket[DataRow](packet)
+    case Some(mt) if mt === CommandCompleteByte => decodePacket[CommandComplete](packet)
+    case Some(mt) if mt === EmptyQueryResponseByte => Xor.Right(EmptyQueryResponse)
+    case Some(mt) => {
+        println(s"Inside Some($mt)")
+        Xor.Left(new UnknownPostgresqlMessageTypeFailure(mt))
+    }
+    case None => Xor.Left(new UnexpectedNoneFailure(""))
+  }
+
+  implicit val messageEq: Eq[Message] = new Eq[Message] {
+    def eqv(x: Message, y: Message): Boolean = x == y
+  }
 }
 
 sealed trait FrontendMessage extends Message
+sealed trait Transmission
 
 case class StartupMessage(user: String, database: String) extends FrontendMessage
-case class Query(queryString: String) extends FrontendMessage
+case class Query(queryString: String) extends FrontendMessage with Transmission
 
 case class PasswordMessage(password: String) extends FrontendMessage
 object PasswordMessage {
@@ -43,6 +69,7 @@ object PasswordMessage {
     }
 }
 
+final class Terminate extends FrontendMessage
 
 sealed trait BackendMessage extends Message
 
@@ -107,6 +134,8 @@ case object Idle extends ReadyForQuery
 case object TransactionBlock extends ReadyForQuery
 case object FailedTransactionBlock extends ReadyForQuery
 
+case object EmptyQueryResponse extends BackendMessage
+
 case class RowDescription(numFields: Short, fields: List[RowDescriptionField]) extends BackendMessage 
 case class RowDescriptionField(name: String, tableObjectId: Int, tableAttributeId: Short,
   dataTypeObjectId: Int, dataTypeSize: Short, typeModifier: Int, formatCode: FormatCode)
@@ -135,3 +164,5 @@ case class DataRow(numColumns: Short, columnBytes: List[Option[Array[Byte]]]) ex
   }
 }
 case class CommandComplete(commandTag: String) extends BackendMessage
+
+case class NoticeResponse(byte: Char, reason: String) extends BackendMessage

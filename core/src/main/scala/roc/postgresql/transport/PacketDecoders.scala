@@ -141,4 +141,10 @@ private[postgresql] trait PacketDecoderImplicits {
       .leftMap(t => new PacketDecodingFailure(t.getMessage))
       .flatMap(AuthenticationMessage(_))
     }
+
+  implicit val noticeResponsePacketDecoder: PacketDecoder[NoticeResponse] = 
+    new PacketDecoder[NoticeResponse] {
+      def apply(p: Packet): Result[NoticeResponse] =
+        Xor.Left(new PacketDecodingFailure("Notice Response Messages not implemented yet"))
+    }
 }
