@@ -63,6 +63,7 @@ lazy val core =  project
   .settings(
     libraryDependencies ++= Seq(
       "org.typelevel"   %%  "cats"          %  catsVersion,
+      "org.spire-math"  %%  "algebra"       %  "0.3.1",
       "io.netty"        %   "netty-buffer"  %  nettyVersion,
       "com.twitter"     %%  "finagle-core"  %  finagleVersion
     )

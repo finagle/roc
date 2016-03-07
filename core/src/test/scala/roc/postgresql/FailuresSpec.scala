@@ -5,14 +5,15 @@ import org.scalacheck.Prop.forAll
 import org.specs2._
 import org.specs2.specification.core._
 
-final class ErrorsSpec extends Specification with ScalaCheck { def is = s2"""
+final class FailuresSpec extends Specification with ScalaCheck { def is = s2"""
 
-  Error
-    UnknownPostgresTypeFailure should have correct message        $unknownPostgresTypeFailure
-    ReadyForQueryDecodingFailure should have correct message      $readyForQueryDecodingFailure
-    UnknownAuthenticationFailure should have correct message      $unknownAuthRequestFailure
-    UnsupportedAuthenticationFailure should have correct message  $unsupportedAuthFailure
-    PostgresqlStateMachineFailure should have correct message     $postgresqlStateMachineFailure
+  Failure
+    UnknownPostgresTypeFailure should have correct message           $unknownPostgresTypeFailure
+    ReadyForQueryDecodingFailure should have correct message         $readyForQueryDecodingFailure
+    UnknownAuthenticationFailure should have correct message         $unknownAuthRequestFailure
+    UnsupportedAuthenticationFailure should have correct message     $unsupportedAuthFailure
+    PostgresqlStateMachineFailure should have correct message        $postgresqlStateMachineFailure
+    UnknownPostgresqlMessageTypeFailure should have correct message  $unknownPostgresqlMessageTypeFailure
                                                                          """
 
   val unknownPostgresTypeFailure = forAll { n: Int =>
@@ -43,6 +44,12 @@ final class ErrorsSpec extends Specification with ScalaCheck { def is = s2"""
   val postgresqlStateMachineFailure = forAll { (s1: String, s2: String) =>
     val expectedMessage = s"State Transition from $s1 -> $s2 is undefined."
     val error           = new PostgresqlStateMachineFailure(s1, s2)
+    error.getMessage must_== expectedMessage
+  }
+  
+  val unknownPostgresqlMessageTypeFailure = forAll { c: Char =>
+    val expectedMessage = s"Unknown Postgresql MessageType '$c'."
+    val error           = new UnknownPostgresqlMessageTypeFailure(c)
     error.getMessage must_== expectedMessage
   }
 }

@@ -261,4 +261,17 @@ object generators {
     implicit lazy val arbitraryFormatCode: Arbitrary[FormatCode] =
       Arbitrary(genFormatCode)
   }
+
+  trait NoticeResponseGen extends ScalaCheck {
+    protected lazy val genByte: Gen[Byte] = arbitrary[Byte]
+    protected lazy val genByteArray: Gen[Array[Byte]] = Gen.containerOf[Array, Byte](genByte)
+
+    implicit lazy val arbitraryErrorBytes: Arbitrary[Array[Byte]] =
+      Arbitrary(genByteArray)
+
+    protected lazy val errorPacket: Gen[Packet] = for {
+      bytes   <-  arbitrary[Array[Byte]]
+    } yield new Packet(Some(Message.NoticeResponseByte), Buffer(bytes))
+
+  }
 }

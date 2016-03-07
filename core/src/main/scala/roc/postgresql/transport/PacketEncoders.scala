@@ -60,4 +60,9 @@ private[postgresql] trait PacketEncoderImplicits {
         Packet(Some(Message.QueryMessageByte), Buffer(bytes))
       }
     }
+
+  implicit val terminateMessageEncoder: PacketEncoder[Terminate] = new PacketEncoder[Terminate] {
+    def apply(t: Terminate): Packet =
+      Packet(Some(Message.TerminateByte), Buffer(Array.empty[Byte]))
+  }
 }
