@@ -3,13 +3,14 @@ package postgresql
 package transport
 
 import cats.data.Xor
+import roc.postgresql.server.PostgresqlError
 import scala.collection.mutable.ListBuffer
 
 private[roc] trait PacketDecoder[A <: BackendMessage] {
   def apply(p: Packet): PacketDecoder.Result[A]
 }
 private[postgresql] object PacketDecoder {
-  final type Result[A] = Xor[Error, A]
+  final type Result[A] = Xor[Failure, A]
 }
 
 private[postgresql] trait PacketDecoderImplicits {
@@ -17,8 +18,26 @@ private[postgresql] trait PacketDecoderImplicits {
 
   implicit val errorMessagePacketDecoder: PacketDecoder[ErrorResponse] = 
     new PacketDecoder[ErrorResponse] {
-      def apply(p: Packet): Result[ErrorResponse] =
-        Xor.Left(new PacketDecodingFailure("Error messages not implemented yet"))
+      def apply(p: Packet): Result[ErrorResponse] = Xor.catchNonFatal({
+        val br = BufferReader(p.body)
+
+        type Field = (Char, String)
+        @annotation.tailrec
+        def loop(xs: List[Field]): List[Field]= br.readByte match {
+          case 0x00 => xs // null
+          case 0x31 => xs // Zero can also be a terminator
+          case byte => {
+            val field = (byte.toChar, br.readNullTerminatedString())
+            loop(field :: xs)
+          }
+        }
+        loop(List.empty[Field])
+      })
+      .leftMap(t => new PacketDecodingFailure(t.getMessage))
+      .flatMap(xs => PostgresqlError(xs).fold(
+        {l => Xor.Left(l)},
+        {r => Xor.Right(new ErrorResponse(r))}
+      ))
     }
 
   implicit val commandCompletePacketDecoder: PacketDecoder[CommandComplete] = 

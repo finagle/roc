@@ -8,6 +8,7 @@ import cats.syntax.eq._
 import com.twitter.util.Future
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+import roc.postgresql.server.PostgresqlError
 import roc.postgresql.transport.{Buffer, BufferReader, BufferWriter, Packet}
 import scala.collection.mutable.ListBuffer
 
@@ -27,7 +28,7 @@ object Message {
   val TerminateByte: Char             = 'X'
   val NoticeResponseByte: Char        = 'N'
 
-  private[roc] def decode(packet: Packet): Xor[Error, Message] = packet.messageType match {
+  private[roc] def decode(packet: Packet): Xor[Failure, Message] = packet.messageType match {
     case Some(mt) if mt === AuthenticationMessageByte => decodePacket[AuthenticationMessage](packet)
     case Some(mt) if mt === ErrorByte => decodePacket[ErrorResponse](packet)
     case Some(mt) if mt === ParameterStatusByte => decodePacket[ParameterStatus](packet)
@@ -73,11 +74,11 @@ final class Terminate extends FrontendMessage
 
 sealed trait BackendMessage extends Message
 
-case class ErrorResponse(byte: Char, reason: String) extends BackendMessage
+case class ErrorResponse(error: PostgresqlError) extends BackendMessage
 
 sealed trait AuthenticationMessage extends BackendMessage
 object AuthenticationMessage {
-  def apply(tuple: (Int, Option[Array[Byte]])): Error Xor AuthenticationMessage = tuple match {
+  def apply(tuple: (Int, Option[Array[Byte]])): Failure Xor AuthenticationMessage = tuple match {
     case (0, None)        => Xor.Right(AuthenticationOk)
     case (2, None)        => Xor.Right(AuthenticationKerberosV5)
     case (3, None)        => Xor.Right(AuthenticationClearTxtPasswd)
