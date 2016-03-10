@@ -1,12 +1,15 @@
-# roc
-[![PyPI](https://img.shields.io/pypi/l/Django.svg?style=plastic)]()
-[![Circle CI](https://circleci.com/gh/penland365/roc/tree/master.svg?style=svg&circle-token=07305c9575ac3fcf0ab5bade8ae2f29921ac04c9)](https://circleci.com/gh/penland365/roc/tree/master)
-[![codecov.io](https://codecov.io/github/penland365/roc/coverage.svg?branch=master)](https://codecov.io/github/penland365/roc?branch=master)
+![Roc Logo](/roc-logo.png?raw=true "Roc Logo")
 
 roc is a modern [Finagle][finagle] [Postgresql][postgresql] [Client][finagle-client]. What's modern? A Client relying on a [6.x +][finagle-changelog] version of Finagle.
 
 roc is currently under heavy development and is not being published with a current version of `0.0.1-ALPHA`.
 If you need a real driver right now you should absolutely use [finagle-postgres][finagle-postgresql-existing].
+
+
+## Badges
+[![PyPI](https://img.shields.io/pypi/l/Django.svg?style=plastic)]()
+[![Circle CI](https://circleci.com/gh/penland365/roc/tree/master.svg?style=svg&circle-token=07305c9575ac3fcf0ab5bade8ae2f29921ac04c9)](https://circleci.com/gh/penland365/roc/tree/master)
+[![codecov.io](https://codecov.io/github/penland365/roc/coverage.svg?branch=master)](https://codecov.io/github/penland365/roc?branch=master)
 
 ## tl;dr
 roc is not being published yet. You'll have to clone/fork this repository, then build locally.
@@ -59,11 +62,10 @@ The good news is that most `Postgresql` columns can be read as strings first, th
  ( see the handling of Timestamps With TimeZone above).
 
 ## Motivation
-Why create your own when there is an existing implementation? Three reasons
+Why create your own when there is an existing implementation? Two reasons
 
 1. The current [finagle-postgres][finagle-postgresql-existing] was developed pre [Finagle 6.x][finagle-changelog] and does not use modern finagle abstractions. These are core enough to require what amounts to a complete rewrite of the driver.
-2. Selfishly, I want to learn more about Finagle internals, and nothing is a better teacher than writing the code yourself.
-3. The current project lacks a true owner - Twitter decided to give the Open Source team a [long vacation][twitter-long-vacation] last fall, and since then only a handful of projects are being actively managed.
+2. The current project lacks a true owner - Twitter decided to give the Open Source team a [long vacation][twitter-long-vacation] last fall, and since then only a handful of projects are being actively managed.
 
 It is absolutely the goal of this project to become the reference implementation, and hopefully be moved into the [Finagle ecosystem][finagle-ecosystem].
 
@@ -87,7 +89,7 @@ roc (*Rokh* or *Rukh*) is named after the Persian mythological bird of prey [Roc
 
 roc is currently maintained by [Jeffrey Davis][jeff-davis].
 
-The circe project supports the [Typelevel][typelevel] [code of conduct][code-of-conduct] and wants
+The roc project supports the [Typelevel][typelevel] [code of conduct][code-of-conduct] and wants
 all of its channels (GitHub, etc.) to be welcoming environments for everyone.
 
 ## License
