@@ -1,7 +1,10 @@
 package roc
 package postgresql
 
+import cats.data.NonEmptyList
+import cats.implicits._
 import org.scalacheck.Prop.forAll
+import org.scalacheck.{Arbitrary, Gen}
 import org.specs2._
 import org.specs2.specification.core._
 
@@ -14,6 +17,7 @@ final class FailuresSpec extends Specification with ScalaCheck { def is = s2"""
     UnsupportedAuthenticationFailure should have correct message     $unsupportedAuthFailure
     PostgresqlStateMachineFailure should have correct message        $postgresqlStateMachineFailure
     UnknownPostgresqlMessageTypeFailure should have correct message  $unknownPostgresqlMessageTypeFailure
+    ErrorResponseDecodingFailure must have a correct error message   $errorResponseDecodingFailure
                                                                          """
 
   val unknownPostgresTypeFailure = forAll { n: Int =>
@@ -52,5 +56,21 @@ final class FailuresSpec extends Specification with ScalaCheck { def is = s2"""
     val error           = new UnknownPostgresqlMessageTypeFailure(c)
     error.getMessage must_== expectedMessage
   }
+
+  val errorResponseDecodingFailure = forAll(genNELErrorResponse) { nel: NonEmptyList[String] =>
+    val error = new ErrorResponseDecodingFailure(nel)
+    val expectedMessage = nel.foldLeft("")(_ + _)
+    expectedMessage must_== error.getMessage
+  }
+
+  private lazy val genErrorResponseString: Gen[String] = Gen.oneOf(
+    "Required Severity Level was not present.",
+    "Required SQLSTATE Code was not present.",
+    "Required Message was not present."
+  )
+  private lazy val genNELErrorResponse: Gen[NonEmptyList[String]] = for {
+    string  <-  genErrorResponseString
+  } yield NonEmptyList(string)
+
 }
 

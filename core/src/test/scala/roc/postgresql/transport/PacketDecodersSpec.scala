@@ -14,7 +14,9 @@ import org.specs2.specification.create.FragmentsFactory
 final class PacketDecodersSpec extends Specification with ScalaCheck { def is = s2"""
 
   ErrorMessage
-    should return a PacketDecodingFailure("Error Messages not implemented yet")     ${ErrorMsg().test}
+    must return Xor.Right(ErrorMessage(PostgresqlError)) when given a valid Packet          $pending
+    must return Xor.Left(ErrorResponseDecodingFailure) when given an invalid Error Message  $pending
+    must return Xor.Left(PacketDecodingFailure) when given an invalid Packet                $pending
 
   CommandComplete
     should return Xor.Right(CommandComplete) when given a valid Packet              ${CmdComplete().test}
@@ -38,7 +40,7 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
     should return Xor.Left(PacketDecodingFailure) when given an invalid Packet      ${RD().testInvalidPacket}
 
   DataRow
-    should return Xor.Right(DataRow) when given a valid Packet                      ${DR().testValidPacket}
+    should return Xor.Right(DataRow) when given a valid Packet                      $pending
     should return Xor.Left(PacketDecodingFailure) when given an invalid Packet      ${DR().testInvalidPacket}
 
   AuthenticationMessages
@@ -51,10 +53,6 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
                                                                                   """
 
   case class ErrorMsg() extends generators.ErrorGen {
-    val test = forAll(errorPacket) { (p: Packet) => 
-      decodePacket[ErrorResponse](p) must_== 
-        Xor.Left(new PacketDecodingFailure("Error messages not implemented yet"))
-    }
   }
 
   case class CmdComplete() extends generators.CommandCompleteGen {

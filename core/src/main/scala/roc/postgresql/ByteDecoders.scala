@@ -4,8 +4,8 @@ package postgresql
 import cats.data.Xor
 
 trait ByteDecoder[A] {
-  def fromText(bytes: Option[Array[Byte]]): ByteDecodingFailure Xor Option[A]
-  def fromBinary(bytes: Option[Array[Byte]]): Error Xor Option[A]
+  def fromText(bytes: Option[Array[Byte]]): Xor[ByteDecodingFailure, Option[A]]
+  def fromBinary(bytes: Option[Array[Byte]]): Xor[Failure, Option[A]]
 }
 
 trait ByteDecoderImplicits {
@@ -20,7 +20,7 @@ trait ByteDecoderImplicits {
         case None    => Xor.Right(None) 
       }
 
-    def fromBinary(bytes: Option[Array[Byte]]): Error Xor Option[Int] =
+    def fromBinary(bytes: Option[Array[Byte]]): Xor[Failure, Option[Int]] =
       Xor.Left(new UnsupportedDecodingFailure("Decoding int from Binary is not Supported"))
   }
 
@@ -34,7 +34,7 @@ trait ByteDecoderImplicits {
         case None    => Xor.Right(None)
       }
 
-    def fromBinary(bytes: Option[Array[Byte]]): Error Xor Option[String] =
+    def fromBinary(bytes: Option[Array[Byte]]): Xor[Failure, Option[String]] =
       Xor.Left(new UnsupportedDecodingFailure("Decoding string from Binary is not Supported"))
   }
 }

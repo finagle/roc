@@ -5,8 +5,10 @@ import cats.data.Xor
 import cats.Show
 import com.twitter.util.Future
 import roc.postgresql.transport.BufferReader
+import roc.postgresql.server.PostgresqlError
 
-final class Result(rowDescription: List[RowDescription], data: List[DataRow], cc: String = "") {
+final class Result(rowDescription: List[RowDescription], data: List[DataRow], cc: String = "",
+  postgresqlError: Option[PostgresqlError]) {
 
   val columns = rowDescription match {
     case h :: t => h.fields
@@ -27,6 +29,8 @@ final class Result(rowDescription: List[RowDescription], data: List[DataRow], cc
   val wasEmptyQuery = columns.isEmpty
 
   val completedString = cc
+
+  val error = postgresqlError
 }
 
 final case class Column(name: Symbol, columnType: PostgresType, formatCode: FormatCode) {

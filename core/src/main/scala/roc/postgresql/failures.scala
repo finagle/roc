@@ -1,7 +1,10 @@
 package roc
 package postgresql
 
-sealed trait Failure extends Error
+import cats.data.NonEmptyList
+import cats.implicits._
+
+sealed abstract class Failure extends Exception
 
 final class UnknownPostgresTypeFailure(objectId: Int) extends Failure {
   final override def getMessage: String = s"Postgres Object ID $objectId is unknown"
@@ -86,6 +89,24 @@ final class ReadyForQueryDecodingFailure(unknownChar: Char) extends Failure {
 
   final override def equals(that: Any): Boolean = that match {
     case x: ReadyForQueryDecodingFailure => x.canEqual(this) && getMessage == x.getMessage
+    case _ => false
+  }
+}
+
+/** Denotes a failure to decode an ErrorResponse from the Postgresql Server
+  *
+  * @constructor creates an error response decoding failure from all error messages
+  * @param xs a [[cats.data.NonEmptyList]] of all decoding failures
+  * @note In practice, these should never occur
+  */
+final class ErrorResponseDecodingFailure private[postgresql]
+  (xs: NonEmptyList[String]) extends Failure {
+  final override def getMessage(): String = xs.foldLeft("")(_ + _ + " ").trim
+
+  def canEqual(a: Any) = a.isInstanceOf[ErrorResponseDecodingFailure]
+
+  final override def equals(that: Any): Boolean = that match {
+    case x: ErrorResponseDecodingFailure => x.canEqual(this) && x.getMessage == getMessage
     case _ => false
   }
 }
