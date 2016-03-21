@@ -26,6 +26,10 @@ final class ErrorNoticeMinutiaSpec extends Specification with ScalaCheck { def i
     Routine must equal 'R'                ${ENMF().testRoutine}
 
   Error Class Codes
+    SuccessCodes must contain all Success values          ${ECC().testSuccessCodes}
+    WarningCodes must contain all Warning values          ${ECC().testWarningCodes}
+    ErrorCodes must contain all Error values              ${ECC().testErrorCodes}
+
     Successful Completion must be '00'                    ${ECC().testSuccessfulCompletion}
     Warning must be '01'                                  ${ECC().testWarning}
     NoData must be '02'                                   ${ECC().testNoData}
@@ -137,6 +141,24 @@ final class ErrorNoticeMinutiaSpec extends Specification with ScalaCheck { def i
     def testForeignDataWrapperError = ForeignDataWrapperError must_== "HV"
     def testPLpgSQLError = PLpgSQLError must_== "P0"
     def testInternalError = InternalError must_== "XX"
+
+    def testSuccessCodes = SuccessCodes must_== List(SuccessfulCompletion)
+    def testWarningCodes = WarningCodes must_== List(Warning, NoData)
+    def testErrorCodes = {
+      val expectedCodes = List(SQLStatementNotYetComplete, ConnectionException, 
+        TriggeredActionException, FeatureNotSupported, InvalidTransactionInitiation,
+        LocatorException,  InvalidGrantor, InvalidRoleSpecification,  DiagnosisException, 
+        CaseNotFound, CardinalityViolation, DataException, IntegrityConstraintViolation, 
+        InvalidCursorState, InvalidTransactionState, InvalidSQLStatementName, 
+        TriggeredDataChangeViolation, InvalidAuthorizationSpecification, 
+        DependentPrivilegeDescriptorsStillExist, InvalidTransactionTermination, SQLRoutineException,
+        InvalidCursorName, ExternalRoutineException, ExternalRoutineInvocationException, 
+        SavepointException, InvalidCatalogName, InvalidSchemaName, TransactionRollback, 
+        SyntaxErrorOrAccessRuleViolation, WithCheckOptionViolation, InsufficientResources, 
+        ProgramLimitExceeded, ObjectNotInPrerequisiteState, OperatorIntervention, SystemError, 
+        ConfigurationFileError, ForeignDataWrapperError, PLpgSQLError, InternalError)
+      ErrorCodes must_== expectedCodes
+    }
   }
 }
 

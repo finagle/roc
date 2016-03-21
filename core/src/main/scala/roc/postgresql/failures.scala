@@ -3,8 +3,17 @@ package postgresql
 
 import cats.data.NonEmptyList
 import cats.implicits._
+import roc.postgresql.server.PostgresqlMessage
 
 sealed abstract class Failure extends Exception
+
+/** An Error occurring on the Postgresql Server.
+  *
+  * @see [[roc.postgresql.server.ErrorMessage]]
+  */
+final class PostgresqlServerFailure(message: PostgresqlMessage) extends Failure {
+  final override def getMessage: String = message.toString
+}
 
 final class UnknownPostgresTypeFailure(objectId: Int) extends Failure {
   final override def getMessage: String = s"Postgres Object ID $objectId is unknown"

@@ -16,11 +16,14 @@ import org.specs2.specification.create.FragmentsFactory
 import roc.postgresql.ErrorResponseDecodingFailure
 import roc.postgresql.server.ErrorNoticeMessageFields._
 
-final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is = s2"""
+final class PostgresqlMessageSpec extends Specification with ScalaCheck { def is = s2"""
 
-  PostgresqlError
-    must extract the value of a tuple by the Code                                     ${PE().testExtractValueByCode}
-    must return Xor.Right(UnknownError(ErrorParams)) when given unknown SQLSTATE Code ${PE().testUnknownError}
+  PostgresqlMessage
+    must extract the value of a tuple by the Code                                       ${PE().testExtractValueByCode}
+    must return Xor.Right(UnknownMessage(ErrorParams)) when given unknown SQLSTATE Code ${PE().testUnknownMessage}
+    must return Xor.Right(SuccesfulMessage) when given a valid Succes Code              ${PE().testSuccessfulMessage}
+    must return Xor.Right(WarningMessage(ErrorParams)) when given a Warning Code        ${PE().testWarningMessages}
+    must return Xor.Right(ErrorMessage(ErrorParams)) when given an Error Code           ${PE().testErrorMessages}
 
   ValidatePacket
     must return RequiredParams when fields are valid                             ${VP().testAllValid}
@@ -44,23 +47,26 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
     must have correct Error Message when no required fields are present           ${BPFT().testNoRequiredFieldsFoundMessage}
 
   ErrorParams
-    PostgresqlError must have correct Severity          ${EP().testSeverity}
-    PostgresqlError must have correct Code              ${EP().testCode}
-    PostgresqlError must have correct Message           ${EP().testMessage}
-    PostgresqlError must have correct Detail            ${EP().testDetail}
-    PostgresqlError must have correct Hint              ${EP().testHint}
-    PostgresqlError must have correct Position          ${EP().testPosition}
-    PostgresqlError must have correct InternalPosition  ${EP().testInternalPosition}
-    PostgresqlError must have correct InternalQuery     ${EP().testInternalQuery}
-    PostgresqlError must have correct Where             ${EP().testWhere}
-    PostgresqlError must have correct SchemaName        ${EP().testSchemaName}
-    PostgresqlError must have correct TableName         ${EP().testTableName}
-    PostgresqlError must have correct ColumnName        ${EP().testColumnName}
-    PostgresqlError must have correct DataTypeName      ${EP().testDataTypeName}
-    PostgresqlError must have correct ConstraintName    ${EP().testConstraintName}
-    PostgresqlError must have correct File              ${EP().testFile}
-    PostgresqlError must have correct Line              ${EP().testLine}
-    PostgresqlError must have correct Routine           ${EP().testRoutine}
+    PostgresqlMessage must have correct Severity          ${EP().testSeverity}
+    PostgresqlMessage must have correct Code              ${EP().testCode}
+    PostgresqlMessage must have correct Message           ${EP().testMessage}
+    PostgresqlMessage must have correct Detail            ${EP().testDetail}
+    PostgresqlMessage must have correct Hint              ${EP().testHint}
+    PostgresqlMessage must have correct Position          ${EP().testPosition}
+    PostgresqlMessage must have correct InternalPosition  ${EP().testInternalPosition}
+    PostgresqlMessage must have correct InternalQuery     ${EP().testInternalQuery}
+    PostgresqlMessage must have correct Where             ${EP().testWhere}
+    PostgresqlMessage must have correct SchemaName        ${EP().testSchemaName}
+    PostgresqlMessage must have correct TableName         ${EP().testTableName}
+    PostgresqlMessage must have correct ColumnName        ${EP().testColumnName}
+    PostgresqlMessage must have correct DataTypeName      ${EP().testDataTypeName}
+    PostgresqlMessage must have correct ConstraintName    ${EP().testConstraintName}
+    PostgresqlMessage must have correct File              ${EP().testFile}
+    PostgresqlMessage must have correct Line              ${EP().testLine}
+    PostgresqlMessage must have correct Routine           ${EP().testRoutine}
+
+  ErrorMessage
+    ErrorMessage must have correct message  ${EM().testMessage}
                                                                                     """
 
   case class PE() extends ErrorNoticeGen {
@@ -68,11 +74,23 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
       val code     = container.code
       val xs       = container.xs
       val expected = xs.find(_._1 === code).map(_._2)
-      PostgresqlError.extractValueByCode(code, xs) must_== expected
+      PostgresqlMessage.extractValueByCode(code, xs) must_== expected
     }
 
-    val testUnknownError = forAll(unknownErrorGen) { x: FieldsAndErrorParams =>
-      PostgresqlError(x.fields) must_== Xor.Right(UnknownError(x.errorParams)) 
+    val testUnknownMessage = forAll(unknownErrorGen) { x: FieldsAndErrorParams =>
+      PostgresqlMessage(x.fields) must_== Xor.Right(UnknownMessage(x.errorParams)) 
+    }
+
+    val testSuccessfulMessage = forAll(successfulMessageGen) { x: FieldsAndErrorParams =>
+      PostgresqlMessage(x.fields) must_== Xor.Right(SuccessMessage(x.errorParams))
+    }
+
+    val testWarningMessages = forAll(warningMessageGen) { x: FieldsAndErrorParams =>
+      PostgresqlMessage(x.fields) must_== Xor.Right(WarningMessage(x.errorParams))
+    }
+
+    val testErrorMessages = forAll(errorMessageGen) { x: FieldsAndErrorParams =>
+      PostgresqlMessage(x.fields) must_== Xor.Right(ErrorMessage(x.errorParams))
     }
   }
 
@@ -83,7 +101,7 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
       val code     = extractCode(xs)
       val message  = extractMessage(xs)
 
-      val actual = PostgresqlError.validatePacket(severity.toValidatedNel, code.toValidatedNel,
+      val actual = PostgresqlMessage.validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
       val expected = validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
@@ -96,7 +114,7 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
       val code     = extractCode(xs)
       val message  = extractMessage(xs)
 
-      val actual = PostgresqlError.validatePacket(severity.toValidatedNel, code.toValidatedNel,
+      val actual = PostgresqlMessage.validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
       val expected = validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
@@ -109,7 +127,7 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
       val code     = extractCode(xs)
       val message  = extractMessage(xs)
 
-      val actual = PostgresqlError.validatePacket(severity.toValidatedNel, code.toValidatedNel,
+      val actual = PostgresqlMessage.validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
       val expected = validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
@@ -122,7 +140,7 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
       val code     = extractCode(xs)
       val message  = extractMessage(xs)
 
-      val actual = PostgresqlError.validatePacket(severity.toValidatedNel, code.toValidatedNel,
+      val actual = PostgresqlMessage.validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
       val expected = validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
@@ -135,7 +153,7 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
       val code     = extractCode(xs)
       val message  = extractMessage(xs)
 
-      val actual = PostgresqlError.validatePacket(severity.toValidatedNel, code.toValidatedNel,
+      val actual = PostgresqlMessage.validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
       val expected = validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
@@ -148,7 +166,7 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
       val code     = extractCode(xs)
       val message  = extractMessage(xs)
 
-      val actual = PostgresqlError.validatePacket(severity.toValidatedNel, code.toValidatedNel,
+      val actual = PostgresqlMessage.validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
       val expected = validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
@@ -161,7 +179,7 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
       val code     = extractCode(xs)
       val message  = extractMessage(xs)
 
-      val actual = PostgresqlError.validatePacket(severity.toValidatedNel, code.toValidatedNel,
+      val actual = PostgresqlMessage.validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
       val expected = validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
@@ -174,7 +192,7 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
       val code     = extractCode(xs)
       val message  = extractMessage(xs)
 
-      val actual = PostgresqlError.validatePacket(severity.toValidatedNel, code.toValidatedNel,
+      val actual = PostgresqlMessage.validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
       val expected = validatePacket(severity.toValidatedNel, code.toValidatedNel,
         message.toValidatedNel)(RequiredParams.apply)
@@ -214,37 +232,37 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
   case class BPFT() extends ErrorNoticeGen {
 
     val testValidFields = forAll(validFieldsGen) { xs: Fields =>
-      PostgresqlError.buildParamsFromTuples(xs).isRight must_== true
+      PostgresqlMessage.buildParamsFromTuples(xs).isRight must_== true
     }
 
     val testInvalidFields = forAll(invalidFieldsGen) { xs: Fields =>
-      PostgresqlError.buildParamsFromTuples(xs).isLeft must_== true
+      PostgresqlMessage.buildParamsFromTuples(xs).isLeft must_== true
     }
 
     val testSeverityMessage = {
       val xs = List((ErrorNoticeMessageFields.Code, "Foo"), (Message, "Bar"))
-      val actual = PostgresqlError.buildParamsFromTuples(xs)
+      val actual = PostgresqlMessage.buildParamsFromTuples(xs)
       val nel = NonEmptyList("Required Severity Level was not present.")
       actual must_== Xor.Left(new ErrorResponseDecodingFailure(nel))
     }
 
     val testSqlStateCodeMessage = {
       val xs = List((Severity, "Foo"), (Message, "Bar"))
-      val actual = PostgresqlError.buildParamsFromTuples(xs)
+      val actual = PostgresqlMessage.buildParamsFromTuples(xs)
       val nel = NonEmptyList("Required SQLSTATE Code was not present.")
       actual must_== Xor.Left(new ErrorResponseDecodingFailure(nel))
     }
 
     val testMessageMessage = {
       val xs = List((Severity, "Foo"), (ErrorNoticeMessageFields.Code, "Bar"))
-      val actual = PostgresqlError.buildParamsFromTuples(xs)
+      val actual = PostgresqlMessage.buildParamsFromTuples(xs)
       val nel = NonEmptyList("Required Message was not present.")
       actual must_== Xor.Left(new ErrorResponseDecodingFailure(nel))
     }
 
     val testSeveritySqlStateCodeMessage = {
       val xs = List((Message, "Foo"))
-      val actual = PostgresqlError.buildParamsFromTuples(xs)
+      val actual = PostgresqlMessage.buildParamsFromTuples(xs)
       val nel = NonEmptyList("Required Severity Level was not present.",
         "Required SQLSTATE Code was not present.")
       actual must_== Xor.Left(new ErrorResponseDecodingFailure(nel))
@@ -252,7 +270,7 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
 
     val testSeverityMessageMessage = {
       val xs = List((ErrorNoticeMessageFields.Code, "Foo"))
-      val actual = PostgresqlError.buildParamsFromTuples(xs)
+      val actual = PostgresqlMessage.buildParamsFromTuples(xs)
       val nel = NonEmptyList("Required Severity Level was not present.",
         "Required Message was not present.")
       actual must_== Xor.Left(new ErrorResponseDecodingFailure(nel))
@@ -260,7 +278,7 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
 
     val testSqlStateCodeMessageMessage = {
       val xs = List((Severity, "Foo"))
-      val actual = PostgresqlError.buildParamsFromTuples(xs)
+      val actual = PostgresqlMessage.buildParamsFromTuples(xs)
       val nel = NonEmptyList("Required SQLSTATE Code was not present.",
         "Required Message was not present.")
       actual must_== Xor.Left(new ErrorResponseDecodingFailure(nel))
@@ -268,7 +286,7 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
 
     val testNoRequiredFieldsFoundMessage = {
       val xs = List.empty[Field]
-      val actual = PostgresqlError.buildParamsFromTuples(xs)
+      val actual = PostgresqlMessage.buildParamsFromTuples(xs)
       val nel = NonEmptyList("Required Severity Level was not present.",
         "Required SQLSTATE Code was not present.",
         "Required Message was not present.")
@@ -278,88 +296,95 @@ final class PostgresqlErrorSpec extends Specification with ScalaCheck { def is =
 
   case class EP() extends ErrorNoticeGen {
     val testSeverity = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.severity must_== ep.severity
     }
 
     val testCode = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.code must_== ep.code
     }
 
     val testMessage = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.message must_== ep.message
     }
 
     val testDetail = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.detail must_== ep.detail
     }
 
     val testHint = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.hint must_== ep.hint
     }
 
     val testPosition = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.position must_== ep.position
     }
 
     val testInternalPosition = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.internalPosition must_== ep.internalPosition
     }
 
     val testInternalQuery = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.internalQuery must_== ep.internalQuery
     }
 
     val testWhere = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.where must_== ep.where
     }
 
     val testSchemaName = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.schemaName must_== ep.schemaName
     }
 
     val testTableName = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.tableName must_== ep.tableName
     }
 
     val testColumnName = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.columnName must_== ep.columnName
     }
 
     val testDataTypeName = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.dataTypeName must_== ep.dataTypeName
     }
 
     val testConstraintName = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.constraintName must_== ep.constraintName
     }
 
     val testFile = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.file must_== ep.file
     }
 
     val testLine = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.line must_== ep.line
     }
 
     val testRoutine = forAll { ep: ErrorParams =>
-      val error = new UnknownError(ep)
+      val error = new UnknownMessage(ep)
       error.routine must_== ep.routine
+    }
+  }
+
+  case class EM() extends ErrorNoticeGen {
+    val testMessage = forAll(errMsgAndRequiredFieldsGen) { xs: ErrorMessageAndRequiredFields =>
+      val expectedMessage = s"${xs.severity} - ${xs.message}. SQLSTATE: ${xs.code}."
+      xs.error.toString must_== expectedMessage
     }
   }
 }
