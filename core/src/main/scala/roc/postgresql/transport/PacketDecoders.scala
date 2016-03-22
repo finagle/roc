@@ -3,7 +3,7 @@ package postgresql
 package transport
 
 import cats.data.Xor
-import roc.postgresql.server.PostgresqlError
+import roc.postgresql.server.PostgresqlMessage
 import scala.collection.mutable.ListBuffer
 
 private[roc] trait PacketDecoder[A <: BackendMessage] {
@@ -34,7 +34,7 @@ private[postgresql] trait PacketDecoderImplicits {
         loop(List.empty[Field])
       })
       .leftMap(t => new PacketDecodingFailure(t.getMessage))
-      .flatMap(xs => PostgresqlError(xs).fold(
+      .flatMap(xs => PostgresqlMessage(xs).fold(
         {l => Xor.Left(l)},
         {r => Xor.Right(new ErrorResponse(r))}
       ))

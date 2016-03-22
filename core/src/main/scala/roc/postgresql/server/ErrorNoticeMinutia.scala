@@ -77,4 +77,18 @@ private[server] object ErrorClassCodes {
   val ForeignDataWrapperError                 = "HV"
   val PLpgSQLError                            = "P0"
   val InternalError                           = "XX"
+
+  val SuccessCodes = List(SuccessfulCompletion)
+  val WarningCodes = List(Warning, NoData)
+  val ErrorCodes = List(SQLStatementNotYetComplete, ConnectionException, TriggeredActionException,
+    FeatureNotSupported, InvalidTransactionInitiation, LocatorException, InvalidGrantor,
+    InvalidRoleSpecification, DiagnosisException, CaseNotFound, CardinalityViolation, 
+    DataException, IntegrityConstraintViolation, InvalidCursorState, InvalidTransactionState,
+    InvalidSQLStatementName, TriggeredDataChangeViolation, InvalidAuthorizationSpecification,
+    DependentPrivilegeDescriptorsStillExist, InvalidTransactionTermination, SQLRoutineException,
+    InvalidCursorName, ExternalRoutineException, ExternalRoutineInvocationException,
+    SavepointException, InvalidCatalogName, InvalidSchemaName, TransactionRollback, 
+    SyntaxErrorOrAccessRuleViolation, WithCheckOptionViolation, InsufficientResources,
+    ProgramLimitExceeded, ObjectNotInPrerequisiteState, OperatorIntervention, SystemError,
+    ConfigurationFileError, ForeignDataWrapperError, PLpgSQLError, InternalError)
 }

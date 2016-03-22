@@ -8,7 +8,7 @@ import cats.syntax.eq._
 import com.twitter.util.Future
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
-import roc.postgresql.server.PostgresqlError
+import roc.postgresql.server.PostgresqlMessage
 import roc.postgresql.transport.{Buffer, BufferReader, BufferWriter, Packet}
 import scala.collection.mutable.ListBuffer
 
@@ -74,7 +74,7 @@ final class Terminate extends FrontendMessage
 
 sealed trait BackendMessage extends Message
 
-case class ErrorResponse(error: PostgresqlError) extends BackendMessage
+case class ErrorResponse(error: PostgresqlMessage) extends BackendMessage
 
 sealed trait AuthenticationMessage extends BackendMessage
 object AuthenticationMessage {

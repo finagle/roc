@@ -142,20 +142,20 @@ trait ErrorNoticeGen extends ScalaCheck {
       optional      <-  genOptionalFields
     } yield {
       val xs = optional.filterNot(x => {x._2 == None || x._2 == Some("")})
-      val detail           = PostgresqlError.extractValueByCode(Detail, xs)
-      val hint             = PostgresqlError.extractValueByCode(Hint, xs)
-      val position         = PostgresqlError.extractValueByCode(Position, xs)
-      val internalPosition = PostgresqlError.extractValueByCode(InternalPosition, xs)
-      val internalQuery    = PostgresqlError.extractValueByCode(InternalQuery, xs)
-      val where            = PostgresqlError.extractValueByCode(Where, xs)
-      val schemaName       = PostgresqlError.extractValueByCode(SchemaName, xs)
-      val tableName        = PostgresqlError.extractValueByCode(TableName, xs)
-      val columnName       = PostgresqlError.extractValueByCode(ColumnName, xs)
-      val dataTypeName     = PostgresqlError.extractValueByCode(DataTypeName, xs)
-      val constraintName   = PostgresqlError.extractValueByCode(ConstraintName, xs)
-      val file             = PostgresqlError.extractValueByCode(File, xs)
-      val line             = PostgresqlError.extractValueByCode(Line, xs)
-      val routine          = PostgresqlError.extractValueByCode(Routine, xs)
+      val detail           = PostgresqlMessage.extractValueByCode(Detail, xs)
+      val hint             = PostgresqlMessage.extractValueByCode(Hint, xs)
+      val position         = PostgresqlMessage.extractValueByCode(Position, xs)
+      val internalPosition = PostgresqlMessage.extractValueByCode(InternalPosition, xs)
+      val internalQuery    = PostgresqlMessage.extractValueByCode(InternalQuery, xs)
+      val where            = PostgresqlMessage.extractValueByCode(Where, xs)
+      val schemaName       = PostgresqlMessage.extractValueByCode(SchemaName, xs)
+      val tableName        = PostgresqlMessage.extractValueByCode(TableName, xs)
+      val columnName       = PostgresqlMessage.extractValueByCode(ColumnName, xs)
+      val dataTypeName     = PostgresqlMessage.extractValueByCode(DataTypeName, xs)
+      val constraintName   = PostgresqlMessage.extractValueByCode(ConstraintName, xs)
+      val file             = PostgresqlMessage.extractValueByCode(File, xs)
+      val line             = PostgresqlMessage.extractValueByCode(Line, xs)
+      val routine          = PostgresqlMessage.extractValueByCode(Routine, xs)
       new ErrorParams(severity = severity, code = sqlStateCode, message = message, 
         detail = detail, hint = hint, position = position, internalPosition = internalPosition, 
         internalQuery = internalQuery, where = where, schemaName = schemaName,
@@ -179,20 +179,20 @@ trait ErrorNoticeGen extends ScalaCheck {
         .getOrElse(throw new Exception("SQLSTATE Code must be generated"))
       val message = xs.find(_._1 === Message).map(_._2)
         .getOrElse(throw new Exception("Message must be generated"))
-      val detail           = PostgresqlError.extractValueByCode(Detail, xs)
-      val hint             = PostgresqlError.extractValueByCode(Hint, xs)
-      val position         = PostgresqlError.extractValueByCode(Position, xs)
-      val internalPosition = PostgresqlError.extractValueByCode(InternalPosition, xs)
-      val internalQuery    = PostgresqlError.extractValueByCode(InternalQuery, xs)
-      val where            = PostgresqlError.extractValueByCode(Where, xs)
-      val schemaName       = PostgresqlError.extractValueByCode(SchemaName, xs)
-      val tableName        = PostgresqlError.extractValueByCode(TableName, xs)
-      val columnName       = PostgresqlError.extractValueByCode(ColumnName, xs)
-      val dataTypeName     = PostgresqlError.extractValueByCode(DataTypeName, xs)
-      val constraintName   = PostgresqlError.extractValueByCode(ConstraintName, xs)
-      val file             = PostgresqlError.extractValueByCode(File, xs)
-      val line             = PostgresqlError.extractValueByCode(Line, xs)
-      val routine          = PostgresqlError.extractValueByCode(Routine, xs)
+      val detail           = PostgresqlMessage.extractValueByCode(Detail, xs)
+      val hint             = PostgresqlMessage.extractValueByCode(Hint, xs)
+      val position         = PostgresqlMessage.extractValueByCode(Position, xs)
+      val internalPosition = PostgresqlMessage.extractValueByCode(InternalPosition, xs)
+      val internalQuery    = PostgresqlMessage.extractValueByCode(InternalQuery, xs)
+      val where            = PostgresqlMessage.extractValueByCode(Where, xs)
+      val schemaName       = PostgresqlMessage.extractValueByCode(SchemaName, xs)
+      val tableName        = PostgresqlMessage.extractValueByCode(TableName, xs)
+      val columnName       = PostgresqlMessage.extractValueByCode(ColumnName, xs)
+      val dataTypeName     = PostgresqlMessage.extractValueByCode(DataTypeName, xs)
+      val constraintName   = PostgresqlMessage.extractValueByCode(ConstraintName, xs)
+      val file             = PostgresqlMessage.extractValueByCode(File, xs)
+      val line             = PostgresqlMessage.extractValueByCode(Line, xs)
+      val routine          = PostgresqlMessage.extractValueByCode(Routine, xs)
       new ErrorParams(severity = severity, code = code, message = message, 
         detail = detail, hint = hint, position = position, internalPosition = internalPosition, 
         internalQuery = internalQuery, where = where, schemaName = schemaName,
@@ -228,7 +228,54 @@ trait ErrorNoticeGen extends ScalaCheck {
       new FieldsAndErrorParams(fields, e)
     }
 
+    lazy val successfulMessageGen: Gen[FieldsAndErrorParams] = for {
+    severity      <-  genValidSeverityField
+    message       <-  arbitrary[String]
+    optional      <-  genOptionalFields
+    } yield {
+      val fields = buildFields(severity, ErrorClassCodes.SuccessfulCompletion, message, optional)
+      val e = buildErrorParamsFromFields(fields)
+      new FieldsAndErrorParams(fields, e)
+    }
+
+    lazy val genValidWarningCode: Gen[String] = Gen.oneOf(ErrorClassCodes.WarningCodes)
+    lazy val warningMessageGen: Gen[FieldsAndErrorParams] = for {
+      severity      <-  genValidSeverityField
+      message       <-  arbitrary[String]
+      optional      <-  genOptionalFields
+      warningCode   <-  genValidWarningCode
+    } yield {
+      val fields = buildFields(severity, warningCode, message, optional)
+      val e = buildErrorParamsFromFields(fields)
+      new FieldsAndErrorParams(fields, e)
+    }
+
+    lazy val genValidErrorCode: Gen[String] = Gen.oneOf(ErrorClassCodes.ErrorCodes)
+    lazy val errorMessageGen: Gen[FieldsAndErrorParams] = for {
+      severity      <-  genValidSeverityField
+      message       <-  arbitrary[String]
+      optional      <-  genOptionalFields
+      errorCode     <-  genValidErrorCode
+    } yield {
+      val fields = buildFields(severity, errorCode, message, optional)
+      val e = buildErrorParamsFromFields(fields)
+      new FieldsAndErrorParams(fields, e)
+    }
+
+    lazy val errMsgAndRequiredFieldsGen: Gen[ErrorMessageAndRequiredFields] = for {
+      severity      <-  genValidSeverityField
+      message       <-  arbitrary[String]
+      optional      <-  genOptionalFields
+      errorCode     <-  genValidErrorCode
+    } yield {
+      val fields = buildFields(severity, errorCode, message, optional)
+      val error = PostgresqlMessage(fields).getOrElse(throw new Exception("Should never get here."))
+      new ErrorMessageAndRequiredFields(severity, message, errorCode, error)
+    }
     case class ExtractValueByCodeContainer(code: Char, xs: Fields)
 
     case class FieldsAndErrorParams(fields: Fields, errorParams: ErrorParams)
+
+    case class ErrorMessageAndRequiredFields(severity: String, message: String, code: String,
+      error: PostgresqlMessage)
 }

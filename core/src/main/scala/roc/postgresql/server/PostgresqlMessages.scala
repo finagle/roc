@@ -15,7 +15,7 @@ import cats.syntax.eq._
   * @see [[http://www.postgresql.org/docs/current/static/protocol-error-fields.html]]
   * @see [[http://www.postgresql.org/docs/current/static/errcodes-appendix.html]]
   */
-sealed abstract class PostgresqlError private[server](params: ErrorParams) {
+sealed abstract class PostgresqlMessage private[server](params: ErrorParams) {
 
   /** The severity of the Error or Notice
     *
@@ -156,14 +156,15 @@ private[server] case class ErrorParams(severity: String, code: String, message: 
 
 private[server] case class RequiredParams(severity: String, code: String, message: String)
 
-object PostgresqlError {
+private[postgresql] object PostgresqlMessage {
   import ErrorNoticeMessageFields._
 
-  def apply(xs: Fields): Xor[Failure, PostgresqlError] =
+  def apply(xs: Fields): Xor[Failure, PostgresqlMessage] =
     buildParamsFromTuples(xs).flatMap(x => x.code.take(2) match {
-      case ErrorClassCodes.SuccessfulCompletion => Xor.Right(new SuccessfulCompletion(x))
-      case ErrorClassCodes.Warning              => Xor.Right(new Warning(x))
-      case code => Xor.Right(new UnknownError(x))
+      case ErrorClassCodes.SuccessfulCompletion => Xor.Right(new SuccessMessage(x))
+      case code if ErrorClassCodes.WarningCodes.contains(code) => Xor.Right(new WarningMessage(x))
+      case code if ErrorClassCodes.ErrorCodes.contains(code) => Xor.Right(new ErrorMessage(x))
+      case code => Xor.Right(new UnknownMessage(x))
     })
 
   // private to server for testing
@@ -229,29 +230,27 @@ object PostgresqlError {
       }
 }
 
-/** Represents an undefined error.
+/** Represents an unknown or undefined message.
   *
   * From Postgresql Documentation: "Since more field types might be added in future, 
   * frontends should silently ignore fields of unrecognized type." Therefore, if we decode
   * an Error we do not recognize, we do not create a Failed Decoding Result.
   */
-final case class UnknownError private[server](params: ErrorParams) 
-  extends PostgresqlError(params)
+final case class UnknownMessage private[server](params: ErrorParams)
+  extends PostgresqlMessage(params)
 
 
-/** Represents a set of Successful Completion Errors
-  * 
-  * Yes, it is oddly name. No, I don't know why Postgresql has an Error named Succesful
-  * Completion. Aren't you glad you read this?
+/** Represents a set of Successful Message
+  *
   * @see [[http://www.postgresql.org/docs/current/static/errcodes-appendix.html]]
   */
-final case class SuccessfulCompletion private[server](params: ErrorParams)
-  extends PostgresqlError(params)
+final case class SuccessMessage private[server](params: ErrorParams)
+  extends PostgresqlMessage(params)
 
 
-/** Represents a set of Warning Errors
+/** Represents a set of Warning Messages
   *
-  * ==Warning Errors==
+  * ==Warning Messages==
   *
   *  1. warning
   *  1. dynamic_result_sets_returned
@@ -261,7 +260,21 @@ final case class SuccessfulCompletion private[server](params: ErrorParams)
   *  1. privilege_not_revoked
   *  1. string_data_right_truncation
   *  1. deprecated_feature
+  *  1. no_data
+  *  1. no_additional_dynamic_result_sets_returned
   *
   * @see [[http://www.postgresql.org/docs/current/static/errcodes-appendix.html]]
+  * @see [[https://github.com/postgres/postgres/blob/master/src/backend/utils/errcodes.txt]]
   */
-final case class Warning private[server](params: ErrorParams) extends PostgresqlError(params)
+final case class WarningMessage private[server](private val params: ErrorParams)
+  extends PostgresqlMessage(params)
+
+/** Represents a set of Error Messages
+  *
+  * @see [[http://www.postgresql.org/docs/current/static/errcodes-appendix.html]]
+  * @see [[https://github.com/postgres/postgres/blob/master/src/backend/utils/errcodes.txt]]
+  */
+final case class ErrorMessage private[server](private val params: ErrorParams)
+  extends PostgresqlMessage(params) {
+  override def toString: String = s"$severity - $message. SQLSTATE: $code."
+}
