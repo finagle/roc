@@ -13,14 +13,8 @@ final class Result(rowDescription: List[RowDescription], data: List[DataRow], cc
     case h :: t => h.fields
       .map(x => Symbol(x.name))
       .zip(h.fields)
-      .map(tuple => {
-        val postgresType = PostgresType(tuple._2.dataTypeObjectId) match {
-          case Xor.Right(t) => t
-          case Xor.Left(l)  => throw l
-        }
-        new Column(tuple._1, postgresType, tuple._2.formatCode)
-      })
-    case t      => List.empty[Column]
+      .map(x => new Column(x._1, x._2.dataTypeObjectId, x._2.formatCode))
+    case t => List.empty[Column]
   }
 
   val rows = data.map(x => new Row(columns, x))
@@ -30,11 +24,31 @@ final class Result(rowDescription: List[RowDescription], data: List[DataRow], cc
   val completedString = cc
 }
 
-final case class Column(name: Symbol, columnType: PostgresType, formatCode: FormatCode) {
+/** Format of data being returned by Postgresql.
+  *
+  * Currently there are only two types, Text and Binary.
+  */
+sealed trait FormatCode
+
+/** Data represented by a String format.
+  */
+case object Text extends FormatCode
+
+/** Data represented in Binary format.
+  * @note Postgresql Binary is always BIG ENDIAN.
+  */
+case object Binary extends FormatCode
+
+
+/** A Column of data returned
+  * @param name the name of the Column returned from Postgresql
+  * @param columnType the data object type id, the "type" of column returned
+  * @param formatCode the current format of the data [[roc.postgresql.FormatCode]]
+  */
+final case class Column private[roc](name: Symbol, columnType: Int, formatCode: FormatCode) {
   final override def toString: String = Column.columnShow.show(this)
 }
 object Column {
-
   implicit val columnShow: Show[Column] = new Show[Column] {
     def show(c: Column): String = 
       s"Column(name=${c.name}, columnType=${c.columnType}, formatCode=${c.formatCode})"
