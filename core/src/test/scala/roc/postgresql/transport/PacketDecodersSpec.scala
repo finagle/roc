@@ -38,9 +38,10 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
   RowDescription
     should return Xor.Right(RowDescription) when given a valid Packet               ${RD().testValidPacket}
     should return Xor.Left(PacketDecodingFailure) when given an invalid Packet      ${RD().testInvalidPacket}
+    should have valid Message when decoding an unknown Format Code                  ${RD().testUnknownFormatCode}
 
   DataRow
-    should return Xor.Right(DataRow) when given a valid Packet                      $pending
+    should return Xor.Right(DataRow) when given a valid Packet                      ${DR().testValidPacket}
     should return Xor.Left(PacketDecodingFailure) when given an invalid Packet      ${DR().testInvalidPacket}
 
   AuthenticationMessages
@@ -128,6 +129,12 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
       decodePacket[RowDescription](packet) must_==
         Xor.Left(new PacketDecodingFailure("Not enough readable bytes - Need 2, maximum is 0"))
     }
+
+    val testUnknownFormatCode = 
+      forAll(genUnknownFormatCodeRDC) { (rdc: RowDescriptionFormatCodeContainer) =>
+        decodePacket[RowDescription](rdc.packet) must_==
+          Xor.Left(new PacketDecodingFailure(s"Unknown format code ${rdc.formatCode}."))
+      }
   }
 
   case class DR() extends generators.DataRowGen {

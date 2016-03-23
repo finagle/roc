@@ -141,10 +141,6 @@ case class RowDescription(numFields: Short, fields: List[RowDescriptionField]) e
 case class RowDescriptionField(name: String, tableObjectId: Int, tableAttributeId: Short,
   dataTypeObjectId: Int, dataTypeSize: Short, typeModifier: Int, formatCode: FormatCode)
 
-sealed trait FormatCode
-case object Text extends FormatCode
-case object Binary extends FormatCode
-
 case class DataRow(numColumns: Short, columnBytes: List[Option[Array[Byte]]]) extends BackendMessage {
 
   def canEqual(a: Any) = a.isInstanceOf[DataRow]

@@ -150,13 +150,55 @@ object generators {
           case Binary => bw.writeShort(1.toShort)
         }
       })
-
       val packet = Packet(Some(Message.RowDescriptionByte), Buffer(bw.toBytes))
       new RowDescriptionContainer(numFields, fields, packet)
     }
 
+    protected lazy val genUnknownFormatCodeRDC: Gen[RowDescriptionFormatCodeContainer] = for {
+      numFields     <-  genValidNonZeroNumberOfShortColumns
+      fields        <-  Gen.listOfN(numFields, genRowDescriptionField)
+      formatCode    <-  genUnknownFormatCode
+    } yield {
+      @annotation.tailrec
+      def calcLength(xs: List[RowDescriptionField], length: Int): Int = xs match {
+        case h :: t => {
+          val fieldLength = lengthOfCStyleString(h.name) + 
+            4 + // 4 Byte tableObjectId Int
+            2 + // 2 Byte tableAttributeId Short
+            4 + // 4 Byte dataTypeObjectId Int
+            2 + // 2 Byte dataTypeSize Short
+            4 + // 4 Byte typeModifier Int
+            2   // 2 Byte formatCode Short
+            calcLength(t, length + fieldLength)
+        }
+        case t      => length
+      }
+      val fieldsLength = calcLength(fields, 0)
+      val length = fieldsLength + 2 // 2 Byte short for number of fields
+      val bw = BufferWriter(new Array[Byte](length))
+      //val formatCode = 3.toShort
+      bw.writeShort(numFields)
+      fields.foreach(f => {
+        bw.writeNullTerminatedString(f.name, StandardCharsets.UTF_8)
+        bw.writeInt(f.tableObjectId)
+        bw.writeShort(f.tableAttributeId)
+        bw.writeInt(f.dataTypeObjectId)
+        bw.writeShort(f.dataTypeSize)
+        bw.writeInt(f.typeModifier)
+        bw.writeShort(formatCode)
+      })
+      val packet = Packet(Some(Message.RowDescriptionByte), Buffer(bw.toBytes))
+      new RowDescriptionFormatCodeContainer(numFields, fields, packet, formatCode)
+    }
+
+    protected lazy val genUnknownFormatCode: Gen[Short] =
+      Gen.chooseNum[Short](2, Short.MaxValue)
+
     case class RowDescriptionContainer(numFields: Short, fields: List[RowDescriptionField], 
       packet: Packet)
+
+    case class RowDescriptionFormatCodeContainer(numFields: Short, fields: List[RowDescriptionField], 
+      packet: Packet, formatCode: Short)
   }
 
   trait DataRowGen extends PostgresqlLexicalGen {

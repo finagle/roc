@@ -99,7 +99,7 @@ private[postgresql] trait PacketDecoderImplicits {
               val formatCode = br.readShort match {
                 case 0 => Text
                 case 1 => Binary
-                case _ => throw new Exception()
+                case s => throw new Exception(s"Unknown format code $s.")
               }
 
               val rdf = RowDescriptionField(name, tableObjectId, tableAttributeId, dataTypeObjectId,
