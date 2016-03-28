@@ -8,8 +8,10 @@ import com.twitter.finagle.dispatch.GenSerialClientDispatcher
 import com.twitter.finagle.transport.Transport
 import com.twitter.finagle.{Service, WriteException}
 import com.twitter.util.{Future, Promise, Time}
-import roc.postgresql.transport.{Packet, PacketEncoder}
+import roc.postgresql.failures.{PostgresqlServerFailure, PostgresqlStateMachineFailure,
+  UnsupportedAuthenticationFailure}
 import roc.postgresql.server.{ErrorMessage, PostgresqlMessage, WarningMessage}
+import roc.postgresql.transport.{Packet, PacketEncoder}
 
 private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
   startup: Startup)
@@ -212,7 +214,7 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
 
   /** Performs the AuthenticationCleartextPassword startup sequence
     */
-  def clearTxtPasswdMachine: Future[Unit] = {
+  private[this] def clearTxtPasswdMachine: Future[Unit] = {
       val pm = new PasswordMessage(startup.password)
       exchange(pm).flatMap(response => response match {
         case AuthenticationOk => Future.Done
@@ -238,7 +240,7 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
   }
 
 }
-object ClientDispatcher {
+private[roc] object ClientDispatcher {
 
   private val wrapWriteException: PartialFunction[Throwable, Future[Nothing]] = {
     case exc: Throwable => Future.exception(WriteException(exc))

@@ -8,12 +8,14 @@ import cats.syntax.eq._
 import com.twitter.util.Future
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+import roc.postgresql.failures.{Failure, ReadyForQueryDecodingFailure, UnexpectedNoneFailure,
+  UnknownAuthenticationRequestFailure, UnknownPostgresqlMessageTypeFailure}
 import roc.postgresql.server.PostgresqlMessage
 import roc.postgresql.transport.{Buffer, BufferReader, BufferWriter, Packet}
 import scala.collection.mutable.ListBuffer
 
-sealed trait Message 
-object Message {
+private[postgresql] sealed abstract class Message
+private[postgresql] object Message {
   val AuthenticationMessageByte: Char = 'R'
   val ErrorByte: Char                 = 'E'
   val ParameterStatusByte: Char       = 'S'
@@ -28,7 +30,7 @@ object Message {
   val TerminateByte: Char             = 'X'
   val NoticeResponseByte: Char        = 'N'
 
-  private[roc] def decode(packet: Packet): Xor[Failure, Message] = packet.messageType match {
+  private[postgresql] def decode(packet: Packet): Xor[Failure, Message] = packet.messageType match {
     case Some(mt) if mt === AuthenticationMessageByte => decodePacket[AuthenticationMessage](packet)
     case Some(mt) if mt === ErrorByte => decodePacket[ErrorResponse](packet)
     case Some(mt) if mt === ParameterStatusByte => decodePacket[ParameterStatus](packet)
@@ -50,15 +52,15 @@ object Message {
   }
 }
 
-sealed trait FrontendMessage extends Message
-sealed trait Transmission
+private[postgresql] sealed trait FrontendMessage extends Message
+private[postgresql] sealed trait Transmission
 
-case class StartupMessage(user: String, database: String) extends FrontendMessage
-case class Query(queryString: String) extends FrontendMessage with Transmission
+private[postgresql] case class StartupMessage(user: String, database: String) extends FrontendMessage
+private[postgresql] case class Query(queryString: String) extends FrontendMessage with Transmission
 
-case class PasswordMessage(password: String) extends FrontendMessage
-object PasswordMessage {
-  private[postgresql] def encryptMD5Passwd(user: String, passwd: String, 
+private[postgresql] case class PasswordMessage(password: String) extends FrontendMessage
+private[postgresql] object PasswordMessage {
+  def encryptMD5Passwd(user: String, passwd: String, 
     salt: Array[Byte]): String = {
       val md = MessageDigest.getInstance("MD5")
       md.update((passwd + user).getBytes)
@@ -70,14 +72,14 @@ object PasswordMessage {
     }
 }
 
-final class Terminate extends FrontendMessage
+private[postgresql] final class Terminate extends FrontendMessage
 
-sealed trait BackendMessage extends Message
+private[postgresql] sealed abstract class BackendMessage extends Message
 
-case class ErrorResponse(error: PostgresqlMessage) extends BackendMessage
+private[postgresql] case class ErrorResponse(error: PostgresqlMessage) extends BackendMessage
 
-sealed trait AuthenticationMessage extends BackendMessage
-object AuthenticationMessage {
+private[postgresql] sealed abstract class AuthenticationMessage extends BackendMessage
+private[postgresql] object AuthenticationMessage {
   def apply(tuple: (Int, Option[Array[Byte]])): Failure Xor AuthenticationMessage = tuple match {
     case (0, None)        => Xor.Right(AuthenticationOk)
     case (2, None)        => Xor.Right(AuthenticationKerberosV5)
@@ -90,9 +92,10 @@ object AuthenticationMessage {
     case (x, _)           => Xor.Left(new UnknownAuthenticationRequestFailure(x))
   }
 }
-case object AuthenticationOk extends AuthenticationMessage
-case object AuthenticationClearTxtPasswd extends AuthenticationMessage
-case class AuthenticationMD5Passwd(salt: Array[Byte]) extends AuthenticationMessage {
+private[postgresql] case object AuthenticationOk extends AuthenticationMessage
+private[postgresql] case object AuthenticationClearTxtPasswd extends AuthenticationMessage
+private[postgresql] case class AuthenticationMD5Passwd(salt: Array[Byte]) 
+  extends AuthenticationMessage {
   def canEqual(a: Any) = a.isInstanceOf[AuthenticationMD5Passwd]
 
   final override def equals(that: Any): Boolean = that match {
@@ -102,11 +105,12 @@ case class AuthenticationMD5Passwd(salt: Array[Byte]) extends AuthenticationMess
   }
 }
 
-case object AuthenticationKerberosV5 extends AuthenticationMessage
-case object AuthenticationSCMCredential extends AuthenticationMessage
-case object AuthenticationGSS extends AuthenticationMessage
-case object AuthenticationSSPI extends AuthenticationMessage
-case class AuthenticationGSSContinue(authBytes: Array[Byte]) extends AuthenticationMessage {
+private[postgresql] case object AuthenticationKerberosV5 extends AuthenticationMessage
+private[postgresql] case object AuthenticationSCMCredential extends AuthenticationMessage
+private[postgresql] case object AuthenticationGSS extends AuthenticationMessage
+private[postgresql] case object AuthenticationSSPI extends AuthenticationMessage
+private[postgresql] case class AuthenticationGSSContinue(authBytes: Array[Byte]) 
+  extends AuthenticationMessage {
   def canEqual(a: Any) = a.isInstanceOf[AuthenticationGSSContinue]
 
   final override def equals(that: Any): Boolean = that match {
@@ -117,11 +121,12 @@ case class AuthenticationGSSContinue(authBytes: Array[Byte]) extends Authenticat
   }
 }
 
-case class ParameterStatus(parameter: String, value: String) extends BackendMessage
-case class BackendKeyData(processId: Int, secretKey: Int) extends BackendMessage
+private[postgresql] case class ParameterStatus(parameter: String, value: String) 
+  extends BackendMessage
+private[postgresql] case class BackendKeyData(processId: Int, secretKey: Int) extends BackendMessage
 
-sealed trait ReadyForQuery extends BackendMessage
-object ReadyForQuery {
+private[postgresql] sealed abstract class ReadyForQuery extends BackendMessage
+private[postgresql] object ReadyForQuery {
   def apply(transactionStatus: Char): ReadyForQueryDecodingFailure Xor ReadyForQuery = 
     transactionStatus match {
       case 'I' => Xor.Right(Idle)
@@ -131,17 +136,20 @@ object ReadyForQuery {
     }
 }
 
-case object Idle extends ReadyForQuery
-case object TransactionBlock extends ReadyForQuery
-case object FailedTransactionBlock extends ReadyForQuery
+private[postgresql] case object Idle extends ReadyForQuery
+private[postgresql] case object TransactionBlock extends ReadyForQuery
+private[postgresql] case object FailedTransactionBlock extends ReadyForQuery
 
-case object EmptyQueryResponse extends BackendMessage
+private[postgresql] case object EmptyQueryResponse extends BackendMessage
 
-case class RowDescription(numFields: Short, fields: List[RowDescriptionField]) extends BackendMessage 
-case class RowDescriptionField(name: String, tableObjectId: Int, tableAttributeId: Short,
-  dataTypeObjectId: Int, dataTypeSize: Short, typeModifier: Int, formatCode: FormatCode)
+private[postgresql] case class RowDescription(numFields: Short, fields: List[RowDescriptionField])
+  extends BackendMessage 
+private[postgresql] case class RowDescriptionField(name: String, tableObjectId: Int, 
+  tableAttributeId: Short, dataTypeObjectId: Int, dataTypeSize: Short, typeModifier: Int,
+  formatCode: FormatCode)
 
-case class DataRow(numColumns: Short, columnBytes: List[Option[Array[Byte]]]) extends BackendMessage {
+private[postgresql] case class DataRow(numColumns: Short, columnBytes: List[Option[Array[Byte]]])
+  extends BackendMessage {
 
   def canEqual(a: Any) = a.isInstanceOf[DataRow]
 
@@ -160,6 +168,6 @@ case class DataRow(numColumns: Short, columnBytes: List[Option[Array[Byte]]]) ex
     case _ => false
   }
 }
-case class CommandComplete(commandTag: String) extends BackendMessage
+private[postgresql] case class CommandComplete(commandTag: String) extends BackendMessage
 
-case class NoticeResponse(byte: Char, reason: String) extends BackendMessage
+private[postgresql] case class NoticeResponse(byte: Char, reason: String) extends BackendMessage

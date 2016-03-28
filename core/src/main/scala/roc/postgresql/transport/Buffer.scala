@@ -6,7 +6,7 @@ import java.nio.ByteOrder
 import java.nio.charset.Charset
 import org.jboss.netty.buffer.{ChannelBuffer, ChannelBuffers}
 
-object Buffer {
+private[postgresql] object Buffer {
   val NullLength = -1 // denotes a SQL NULL value when reading a length coded binary.
   val EmptyString = new String
 
@@ -30,12 +30,12 @@ object Buffer {
 
 }
 
-sealed trait Buffer {
+private[postgresql] sealed trait Buffer {
   val underlying: ChannelBuffer
   def capacity: Int = underlying.capacity
 }
 
-trait BufferReader extends Buffer {
+private[postgresql] trait BufferReader extends Buffer {
 
   /** Current reader offset in the buffer. */
   def offset: Int
@@ -140,7 +140,7 @@ trait BufferReader extends Buffer {
   def toString(start: Int, length: Int, charset: Charset): String
 }
 
-object BufferReader {
+private[postgresql] object BufferReader {
 
   def apply(buf: Buffer, offset: Int = 0): BufferReader = {
     require(offset >= 0, "Invalid reader offset")
@@ -192,7 +192,7 @@ object BufferReader {
  * that is, all operations increase the offset
  * into the underlying buffer.
  */
-trait BufferWriter extends Buffer {
+private[postgresql] trait BufferWriter extends Buffer {
 
   /**
    * Current writer offset.
@@ -296,7 +296,7 @@ trait BufferWriter extends Buffer {
    }
 }
 
-object BufferWriter {
+private[postgresql] object BufferWriter {
 
   def apply(buf: Buffer, offset: Int = 0): BufferWriter = {
     require(offset >= 0, "Inavlid writer offset.")
