@@ -2,6 +2,7 @@ package roc
 package postgresql
 
 import cats.data.Xor
+import roc.postgresql.failures.{ByteDecodingFailure, Failure, UnsupportedDecodingFailure}
 
 trait ByteDecoder[A] {
   def fromText(bytes: Option[Array[Byte]]): Xor[ByteDecodingFailure, Option[A]]

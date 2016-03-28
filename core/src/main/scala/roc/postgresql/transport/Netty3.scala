@@ -31,7 +31,7 @@ private[roc] final class PacketFrameDecoder extends FrameDecoder {
 
 }
 
-private[roc] final class PacketWriter extends SimpleChannelDownstreamHandler {
+private[transport] final class PacketWriter extends SimpleChannelDownstreamHandler {
   override def writeRequested(ctx: ChannelHandlerContext, evt: MessageEvent) =
     evt.getMessage match {
       case p: Packet =>

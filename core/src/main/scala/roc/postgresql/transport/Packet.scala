@@ -4,7 +4,7 @@ package transport
 
 import org.jboss.netty.buffer.{ChannelBuffer, ChannelBuffers}
 
-case class Packet(messageType: Option[Char], body: Buffer) {
+private[roc] case class Packet(messageType: Option[Char], body: Buffer) {
 
   def length: Int = body.underlying.capacity + 4
 
@@ -26,6 +26,6 @@ case class Packet(messageType: Option[Char], body: Buffer) {
 }
 
 
-object Packet {
+private[roc] object Packet {
   val HeaderSize = 5
 }

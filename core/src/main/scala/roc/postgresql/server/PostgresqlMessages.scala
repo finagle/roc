@@ -7,6 +7,7 @@ import cats.data.{NonEmptyList, Validated, ValidatedNel, Xor}
 import cats.Semigroup
 import cats.std.all._
 import cats.syntax.eq._
+import roc.postgresql.failures.{ErrorResponseDecodingFailure, Failure}
 
 /** Represents an error that occured on the Postgresql Server.
   *

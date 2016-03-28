@@ -7,6 +7,7 @@ import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Gen}
 import org.specs2._
 import org.specs2.specification.core._
+import roc.postgresql.failures._
 
 final class FailuresSpec extends Specification with ScalaCheck { def is = s2"""
 

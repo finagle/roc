@@ -3,10 +3,11 @@ package postgresql
 package transport
 
 import cats.data.Xor
+import roc.postgresql.failures.{Failure, PacketDecodingFailure}
 import roc.postgresql.server.PostgresqlMessage
 import scala.collection.mutable.ListBuffer
 
-private[roc] trait PacketDecoder[A <: BackendMessage] {
+private[postgresql] trait PacketDecoder[A <: BackendMessage] {
   def apply(p: Packet): PacketDecoder.Result[A]
 }
 private[postgresql] object PacketDecoder {

@@ -10,6 +10,8 @@ import org.scalacheck.{Arbitrary, Gen}
 import org.specs2._
 import org.specs2.specification.core._
 import org.specs2.specification.create.FragmentsFactory
+import roc.postgresql.failures.{PacketDecodingFailure, ReadyForQueryDecodingFailure,
+  UnknownAuthenticationRequestFailure}
 
 final class PacketDecodersSpec extends Specification with ScalaCheck { def is = s2"""
 

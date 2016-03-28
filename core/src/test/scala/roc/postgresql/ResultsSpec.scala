@@ -7,6 +7,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import org.specs2._
 import org.specs2.mock.Mockito
 import org.specs2.specification.core._
+import roc.postgresql.failures.ColumnNotFoundException
 
 final class ResultsSpec extends Specification with ScalaCheck with Mockito { def is = s2"""
 

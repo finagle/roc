@@ -4,6 +4,7 @@ package postgresql
 import cats.data.Xor
 import cats.Show
 import com.twitter.util.Future
+import roc.postgresql.failures._
 import roc.postgresql.transport.BufferReader
 import roc.postgresql.server.PostgresqlMessage
 
