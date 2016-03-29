@@ -18,14 +18,14 @@ Once built, open `sbt console` and insert the following
 ```scala
 scala > :paste
 import com.twitter.util.Await
-import com.github.finagle.roc.Postgresql
-import com.github.finagle.roc.postgresql.{Request, Row}
+import roc.Postgresql
+import roc.postgresql.{Request, Row}
 
 val client = Postgresql.client
-  .withCredentials([USER_NAME], Some([DATABASE]))
-  .withPassword([PASSWORD])
-  .newRichClient("localhost:5432")
-val req = new Request("SELECT * FROM states;")
+  .withUserAndPasswd("username", "password")
+  .withDatabase("database")
+  .newRichClient("inet!localhost:5432")
+val req = new Request("SELECT * FROM STATES;")
 val result = Await.result(client.query(req))
 ```
 A result contains two types, a list of columns detailing information about
