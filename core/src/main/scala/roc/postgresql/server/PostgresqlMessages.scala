@@ -7,7 +7,7 @@ import cats.data.{NonEmptyList, Validated, ValidatedNel, Xor}
 import cats.Semigroup
 import cats.std.all._
 import cats.syntax.eq._
-import roc.postgresql.failures.{ErrorResponseDecodingFailure, Failure}
+import roc.postgresql.failures.{PostgresqlMessageDecodingFailure, Failure}
 
 /** Represents an error that occured on the Postgresql Server.
   *
@@ -148,14 +148,14 @@ sealed abstract class PostgresqlMessage private[server](params: ErrorParams) {
   val routine: Option[String] = params.routine
 }
 
-private[server] case class ErrorParams(severity: String, code: String, message: String, 
+private[postgresql] case class ErrorParams(severity: String, code: String, message: String, 
   detail: Option[String], hint: Option[String], position: Option[String],
   internalPosition: Option[String], internalQuery: Option[String], where: Option[String], 
   schemaName: Option[String], tableName: Option[String], columnName: Option[String],
   dataTypeName: Option[String], constraintName: Option[String], file: Option[String], 
   line: Option[String], routine: Option[String])
 
-private[server] case class RequiredParams(severity: String, code: String, message: String)
+private[postgresql] case class RequiredParams(severity: String, code: String, message: String)
 
 private[postgresql] object PostgresqlMessage {
   import ErrorNoticeMessageFields._
@@ -170,7 +170,7 @@ private[postgresql] object PostgresqlMessage {
 
   // private to server for testing
   private[server] def buildParamsFromTuples(xs: List[Field]): 
-    Xor[ErrorResponseDecodingFailure, ErrorParams] = {
+    Xor[PostgresqlMessageDecodingFailure, ErrorParams] = {
       val detail           = extractValueByCode(Detail, xs)
       val hint             = extractValueByCode(Hint, xs)
       val position         = extractValueByCode(Position, xs)
@@ -202,7 +202,7 @@ private[postgresql] object PostgresqlMessage {
       validatePacket(severity.toValidatedNel, code.toValidatedNel, 
         message.toValidatedNel)(RequiredParams.apply)
         .fold(
-          {l => Xor.Left(new ErrorResponseDecodingFailure(l))},
+          {l => Xor.Left(new PostgresqlMessageDecodingFailure(l))},
           {r => Xor.Right(new ErrorParams(severity = r.severity, code = r.code, message = r.message,
             detail = detail, hint = hint, position = position, internalPosition = internalPosition,
             internalQuery = internalQuery, where = where, schemaName = schemaName,

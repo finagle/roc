@@ -17,23 +17,36 @@ private[postgresql] object PacketDecoder {
 private[postgresql] trait PacketDecoderImplicits {
   import PacketDecoder._
 
+  private[this] type Field = (Char, String)
+  private[this] type Fields = List[Field]
+  private[this] def readErrorNoticePacket(p: Packet): Xor[Throwable, Fields] = Xor.catchNonFatal({
+    val br = BufferReader(p.body)
+
+    @annotation.tailrec
+    def loop(xs: List[Field]): List[Field]= br.readByte match {
+      case 0x00 => xs // null
+      case 0x31 => xs // Zero can also be a terminator
+      case byte => {
+        val field = (byte.toChar, br.readNullTerminatedString())
+        loop(field :: xs)
+      }
+    }
+    loop(List.empty[Field])
+  })
+
+  implicit val noticeResponsePacketDecoder: PacketDecoder[NoticeResponse] = 
+    new PacketDecoder[NoticeResponse] {
+      def apply(p: Packet): Result[NoticeResponse] = readErrorNoticePacket(p)
+        .leftMap(t => new PacketDecodingFailure(t.getMessage))
+        .flatMap(xs => PostgresqlMessage(xs).fold(
+          {l => Xor.Left(l)},
+          {r => Xor.Right(new NoticeResponse(r))}
+        ))
+    }
+
   implicit val errorMessagePacketDecoder: PacketDecoder[ErrorResponse] = 
     new PacketDecoder[ErrorResponse] {
-      def apply(p: Packet): Result[ErrorResponse] = Xor.catchNonFatal({
-        val br = BufferReader(p.body)
-
-        type Field = (Char, String)
-        @annotation.tailrec
-        def loop(xs: List[Field]): List[Field]= br.readByte match {
-          case 0x00 => xs // null
-          case 0x31 => xs // Zero can also be a terminator
-          case byte => {
-            val field = (byte.toChar, br.readNullTerminatedString())
-            loop(field :: xs)
-          }
-        }
-        loop(List.empty[Field])
-      })
+      def apply(p: Packet): Result[ErrorResponse] = readErrorNoticePacket(p)
       .leftMap(t => new PacketDecodingFailure(t.getMessage))
       .flatMap(xs => PostgresqlMessage(xs).fold(
         {l => Xor.Left(l)},
@@ -160,11 +173,5 @@ private[postgresql] trait PacketDecoderImplicits {
       })
       .leftMap(t => new PacketDecodingFailure(t.getMessage))
       .flatMap(AuthenticationMessage(_))
-    }
-
-  implicit val noticeResponsePacketDecoder: PacketDecoder[NoticeResponse] = 
-    new PacketDecoder[NoticeResponse] {
-      def apply(p: Packet): Result[NoticeResponse] =
-        Xor.Left(new PacketDecodingFailure("Notice Response Messages not implemented yet"))
     }
 }

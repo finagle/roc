@@ -62,10 +62,12 @@ trait ErrorNoticeGen extends ScalaCheck {
 
     lazy val genValidSeverityField: Gen[String] = Gen.oneOf("ERROR", "FATAL", "PANIC")
     lazy val genValidSQLSTATECode: Gen[String] = Gen.oneOf(errorClassCodeList)
+    lazy val genNonZeroLengthString: Gen[String] =
+      arbitrary[String] suchThat (_.length > 0)
     lazy val validRequiredFieldsGen: Gen[Fields] = for {
       severity      <-  genValidSeverityField
       sqlStateCode  <-  genValidSQLSTATECode
-      message       <-  arbitrary[String]
+      message       <-  genNonZeroLengthString
     } yield List((Severity, severity), (ErrorNoticeMessageFields.Code, sqlStateCode),
       (Message, message))
     lazy val invalidSeverityFieldsGen: Gen[Fields] = for {
@@ -90,20 +92,20 @@ trait ErrorNoticeGen extends ScalaCheck {
       message   <-  arbitrary[String]
     } yield List((Message, message))
     lazy val genOptionalFields: Gen[Fields] = for {
-      detail              <-  arbitrary[String]
-      hint                <-  arbitrary[String]
-      position            <-  arbitrary[String]
-      internalPosition    <-  arbitrary[String]
-      internalQuery       <-  arbitrary[String]
-      where               <-  arbitrary[String]
-      schemaName          <-  arbitrary[String]
-      tableName           <-  arbitrary[String]
-      columnName          <-  arbitrary[String]
-      dataTypeName        <-  arbitrary[String]
-      constraintName      <-  arbitrary[String]
-      file                <-  arbitrary[String]
-      line                <-  arbitrary[String]
-      routine             <-  arbitrary[String]
+      detail              <-  genNonZeroLengthString
+      hint                <-  genNonZeroLengthString
+      position            <-  genNonZeroLengthString
+      internalPosition    <-  genNonZeroLengthString
+      internalQuery       <-  genNonZeroLengthString
+      where               <-  genNonZeroLengthString
+      schemaName          <-  genNonZeroLengthString
+      tableName           <-  genNonZeroLengthString
+      columnName          <-  genNonZeroLengthString
+      dataTypeName        <-  genNonZeroLengthString
+      constraintName      <-  genNonZeroLengthString
+      file                <-  genNonZeroLengthString
+      line                <-  genNonZeroLengthString
+      routine             <-  genNonZeroLengthString
     } yield List((Detail, detail), (Hint, hint), (Position, position), (InternalPosition, 
         internalPosition), (InternalQuery, internalQuery), (Where, where), (SchemaName, schemaName),
         (TableName, tableName), (ColumnName, columnName), (DataTypeName, dataTypeName), 
@@ -124,7 +126,7 @@ trait ErrorNoticeGen extends ScalaCheck {
       required      <-  invalidRequiredFieldsGen
       severity      <-  genValidSeverityField
       sqlStateCode  <-  genValidSQLSTATECode
-      message       <-  arbitrary[String]
+      message       <-  genNonZeroLengthString
       optional      <-  genOptionalFields
     } yield {
       val filteredOptional = optional.filterNot(x => {x._2 == None || x._2 == Some("")})
