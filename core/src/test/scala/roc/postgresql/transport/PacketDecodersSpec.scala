@@ -12,13 +12,14 @@ import org.specs2.specification.core._
 import org.specs2.specification.create.FragmentsFactory
 import roc.postgresql.failures.{PacketDecodingFailure, ReadyForQueryDecodingFailure,
   UnknownAuthenticationRequestFailure}
+import roc.postgresql.server.PostgresqlMessage
 
 final class PacketDecodersSpec extends Specification with ScalaCheck { def is = s2"""
 
   ErrorMessage
-    must return Xor.Right(ErrorMessage(PostgresqlError)) when given a valid Packet          $pending
-    must return Xor.Left(ErrorResponseDecodingFailure) when given an invalid Error Message  $pending
-    must return Xor.Left(PacketDecodingFailure) when given an invalid Packet                $pending
+    must return Xor.Right(ErrorMessage(PostgresqlMessage)) when given a valid Packet        ${ErrorMsg().test}
+    must return Xor.Left(ErrorResponseDecodingFailure) when given an invalid Error Message  ${ErrorMsg().testInvalid}
+    must return Xor.Left(PacketDecodingFailure) when given an invalid Packet                ${ErrorMsg().testInvalidPacket}
 
   CommandComplete
     should return Xor.Right(CommandComplete) when given a valid Packet              ${CmdComplete().test}
@@ -52,10 +53,26 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
     should return Xor.Left(PacketDecodingFailure) when given an invalid Packet                 ${AM().testInvalidPacket}
 
   NoticeResponseMessage
-    should return a PacketDecodingFailure("Notice Responses not implemented yet     ${NR().test}
+    must return Xor.Right(NoticeResponse(PostgresqlMessage)) when given a valid Packet             ${NR().test}
+    must return Xor.Left(PostgresqlMessageDecodingFailure) when given an invalid PostgresqlMessage ${NR().testInvalid}
+    must return Xor.Left(PacketDecodingFailure) when given an invalid Packet                       ${NR().testInvalidPacket}
                                                                                   """
 
-  case class ErrorMsg() extends generators.ErrorGen {
+  case class ErrorMsg() extends generators.ErrorNoticePacketGen {
+    val test = forAll(validErrorPacketContainerGen) { c: ErrorNoticePacketContainer =>
+      val message = PostgresqlMessage(c.fields).getOrElse(throw new Exception("Generator Failed"))
+      decodePacket[ErrorResponse](c.packet) must_== Xor.Right(ErrorResponse(message))
+    }
+
+    val testInvalid = forAll(invalidErrorPacketContainerGen) { c: ErrorNoticePacketContainer =>
+      decodePacket[ErrorResponse](c.packet) must_== PostgresqlMessage(c.fields)
+    }
+
+    val testInvalidPacket = {
+      val packet = Packet(Some(Message.CommandCompleteByte), Buffer(Array.empty[Byte]))
+      decodePacket[ErrorResponse](packet) must_==
+        Xor.Left(new PacketDecodingFailure("Readable byte limit exceeded: 0"))
+    }
   }
 
   case class CmdComplete() extends generators.CommandCompleteGen {
@@ -183,10 +200,20 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
     }
   }
 
-  case class NR() extends generators.NoticeResponseGen {
-    val test = forAll(errorPacket) { (p: Packet) => 
-      decodePacket[NoticeResponse](p) must_== 
-        Xor.Left(new PacketDecodingFailure("Notice Response Messages not implemented yet"))
+  case class NR() extends generators.ErrorNoticePacketGen {
+    val test = forAll(validNoticePacketContainerGen) { c: ErrorNoticePacketContainer =>
+      val message = PostgresqlMessage(c.fields).getOrElse(throw new Exception("Generator Failed"))
+      decodePacket[NoticeResponse](c.packet) must_== Xor.Right(NoticeResponse(message))
+    }
+
+    val testInvalid = forAll(invalidNoticePacketContainerGen) { c: ErrorNoticePacketContainer =>
+      decodePacket[NoticeResponse](c.packet) must_== PostgresqlMessage(c.fields)
+    }
+
+    val testInvalidPacket = {
+      val packet = Packet(Some(Message.NoticeResponseByte), Buffer(Array.empty[Byte]))
+      decodePacket[NoticeResponse](packet) must_==
+        Xor.Left(new PacketDecodingFailure("Readable byte limit exceeded: 0"))
     }
   }
 }

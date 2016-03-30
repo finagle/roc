@@ -18,7 +18,7 @@ final class FailuresSpec extends Specification with ScalaCheck { def is = s2"""
     UnsupportedAuthenticationFailure should have correct message     $unsupportedAuthFailure
     PostgresqlStateMachineFailure should have correct message        $postgresqlStateMachineFailure
     UnknownPostgresqlMessageTypeFailure should have correct message  $unknownPostgresqlMessageTypeFailure
-    ErrorResponseDecodingFailure must have a correct error message   $errorResponseDecodingFailure
+    PostgresqlMessageDecodingFailure must have a correct error message   $postgresqlMessageDecodingFailure
                                                                          """
 
   val unknownPostgresTypeFailure = forAll { n: Int =>
@@ -58,8 +58,8 @@ final class FailuresSpec extends Specification with ScalaCheck { def is = s2"""
     error.getMessage must_== expectedMessage
   }
 
-  val errorResponseDecodingFailure = forAll(genNELErrorResponse) { nel: NonEmptyList[String] =>
-    val error = new ErrorResponseDecodingFailure(nel)
+  val postgresqlMessageDecodingFailure = forAll(genNELErrorResponse) { nel: NonEmptyList[String] =>
+    val error = new PostgresqlMessageDecodingFailure(nel)
     val expectedMessage = nel.foldLeft("")(_ + _)
     expectedMessage must_== error.getMessage
   }

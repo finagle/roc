@@ -102,26 +102,26 @@ object failures {
       case _ => false
     }
   }
-  
-  /** Denotes a failure to decode an ErrorResponse from the Postgresql Server
+
+  /** Denotes a failure to decode an [[PostgresqlMessage]] from the Postgresql Server
     *
     * @constructor creates an error response decoding failure from all error messages
     * @param xs a [[cats.data.NonEmptyList]] of all decoding failures
     * @note In practice, these should never occur
     */
-  final class ErrorResponseDecodingFailure private[postgresql]
+  final class PostgresqlMessageDecodingFailure private[postgresql]
     (xs: NonEmptyList[String]) extends Failure {
     final override def getMessage(): String = xs.foldLeft("")(_ + _ + " ").trim
-  
-    def canEqual(a: Any) = a.isInstanceOf[ErrorResponseDecodingFailure]
-  
+
+    def canEqual(a: Any) = a.isInstanceOf[PostgresqlMessageDecodingFailure]
+
     final override def equals(that: Any): Boolean = that match {
-      case x: ErrorResponseDecodingFailure => x.canEqual(this) && x.getMessage == getMessage
+      case x: PostgresqlMessageDecodingFailure => x.canEqual(this) && x.getMessage == getMessage
       case _ => false
     }
   }
-  
-  
+
+
   /** Denotes a State Transition with the Postgresql State Machine that should be impossible.
     *
     * The Postgresql 3.0 Protocol describes serveral specific connection State Machines depending

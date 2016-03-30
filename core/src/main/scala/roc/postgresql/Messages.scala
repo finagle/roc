@@ -33,6 +33,7 @@ private[postgresql] object Message {
   private[postgresql] def decode(packet: Packet): Xor[Failure, Message] = packet.messageType match {
     case Some(mt) if mt === AuthenticationMessageByte => decodePacket[AuthenticationMessage](packet)
     case Some(mt) if mt === ErrorByte => decodePacket[ErrorResponse](packet)
+    case Some(mt) if mt === NoticeResponseByte => decodePacket[NoticeResponse](packet)
     case Some(mt) if mt === ParameterStatusByte => decodePacket[ParameterStatus](packet)
     case Some(mt) if mt === BackendKeyDataByte => decodePacket[BackendKeyData](packet)
     case Some(mt) if mt === ReadyForQueryByte => decodePacket[ReadyForQuery](packet)
@@ -170,4 +171,4 @@ private[postgresql] case class DataRow(numColumns: Short, columnBytes: List[Opti
 }
 private[postgresql] case class CommandComplete(commandTag: String) extends BackendMessage
 
-private[postgresql] case class NoticeResponse(byte: Char, reason: String) extends BackendMessage
+private[postgresql] case class NoticeResponse(message: PostgresqlMessage) extends BackendMessage

@@ -13,7 +13,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import org.specs2._
 import org.specs2.specification.core._
 import org.specs2.specification.create.FragmentsFactory
-import roc.postgresql.failures.ErrorResponseDecodingFailure
+import roc.postgresql.failures.PostgresqlMessageDecodingFailure
 import roc.postgresql.server.ErrorNoticeMessageFields._
 
 final class PostgresqlMessageSpec extends Specification with ScalaCheck { def is = s2"""
@@ -37,7 +37,7 @@ final class PostgresqlMessageSpec extends Specification with ScalaCheck { def is
 
   BuildParamsFromTuples
     must return Xor.Right(ErrorParams) when given valid Fields                    ${BPFT().testValidFields}
-    must return Xor.Left(ErrorResponseDecodingFailure) when given invalid Fields  ${BPFT().testInvalidFields}
+    must return Xor.Left(PostgresqlMessageDecodingFailure) when given invalid Fields  ${BPFT().testInvalidFields}
     must have correct Error Message when Severity is invalid                      ${BPFT().testSeverityMessage}
     must have correct Error Message when SQLSTATECode is invalid                  ${BPFT().testSqlStateCodeMessage}
     must have correct Error Message when Message is invalid                       ${BPFT().testMessageMessage}
@@ -243,21 +243,21 @@ final class PostgresqlMessageSpec extends Specification with ScalaCheck { def is
       val xs = List((ErrorNoticeMessageFields.Code, "Foo"), (Message, "Bar"))
       val actual = PostgresqlMessage.buildParamsFromTuples(xs)
       val nel = NonEmptyList("Required Severity Level was not present.")
-      actual must_== Xor.Left(new ErrorResponseDecodingFailure(nel))
+      actual must_== Xor.Left(new PostgresqlMessageDecodingFailure(nel))
     }
 
     val testSqlStateCodeMessage = {
       val xs = List((Severity, "Foo"), (Message, "Bar"))
       val actual = PostgresqlMessage.buildParamsFromTuples(xs)
       val nel = NonEmptyList("Required SQLSTATE Code was not present.")
-      actual must_== Xor.Left(new ErrorResponseDecodingFailure(nel))
+      actual must_== Xor.Left(new PostgresqlMessageDecodingFailure(nel))
     }
 
     val testMessageMessage = {
       val xs = List((Severity, "Foo"), (ErrorNoticeMessageFields.Code, "Bar"))
       val actual = PostgresqlMessage.buildParamsFromTuples(xs)
       val nel = NonEmptyList("Required Message was not present.")
-      actual must_== Xor.Left(new ErrorResponseDecodingFailure(nel))
+      actual must_== Xor.Left(new PostgresqlMessageDecodingFailure(nel))
     }
 
     val testSeveritySqlStateCodeMessage = {
@@ -265,7 +265,7 @@ final class PostgresqlMessageSpec extends Specification with ScalaCheck { def is
       val actual = PostgresqlMessage.buildParamsFromTuples(xs)
       val nel = NonEmptyList("Required Severity Level was not present.",
         "Required SQLSTATE Code was not present.")
-      actual must_== Xor.Left(new ErrorResponseDecodingFailure(nel))
+      actual must_== Xor.Left(new PostgresqlMessageDecodingFailure(nel))
     }
 
     val testSeverityMessageMessage = {
@@ -273,7 +273,7 @@ final class PostgresqlMessageSpec extends Specification with ScalaCheck { def is
       val actual = PostgresqlMessage.buildParamsFromTuples(xs)
       val nel = NonEmptyList("Required Severity Level was not present.",
         "Required Message was not present.")
-      actual must_== Xor.Left(new ErrorResponseDecodingFailure(nel))
+      actual must_== Xor.Left(new PostgresqlMessageDecodingFailure(nel))
     }
 
     val testSqlStateCodeMessageMessage = {
@@ -281,7 +281,7 @@ final class PostgresqlMessageSpec extends Specification with ScalaCheck { def is
       val actual = PostgresqlMessage.buildParamsFromTuples(xs)
       val nel = NonEmptyList("Required SQLSTATE Code was not present.",
         "Required Message was not present.")
-      actual must_== Xor.Left(new ErrorResponseDecodingFailure(nel))
+      actual must_== Xor.Left(new PostgresqlMessageDecodingFailure(nel))
     }
 
     val testNoRequiredFieldsFoundMessage = {
@@ -290,7 +290,7 @@ final class PostgresqlMessageSpec extends Specification with ScalaCheck { def is
       val nel = NonEmptyList("Required Severity Level was not present.",
         "Required SQLSTATE Code was not present.",
         "Required Message was not present.")
-      actual must_== Xor.Left(new ErrorResponseDecodingFailure(nel))
+      actual must_== Xor.Left(new PostgresqlMessageDecodingFailure(nel))
     }
   }
 

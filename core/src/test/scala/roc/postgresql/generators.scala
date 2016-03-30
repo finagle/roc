@@ -11,18 +11,68 @@ import roc.postgresql.transport.{Buffer, BufferWriter, Packet}
 
 object generators {
 
-  trait ErrorGen extends ScalaCheck {
+  trait ErrorNoticePacketGen extends roc.postgresql.server.ErrorNoticeGen {
+    private[this] type Field = (Char, String)
+    private[this] type Fields = List[Field]
 
-    protected lazy val genByte: Gen[Byte] = arbitrary[Byte]
-    protected lazy val genByteArray: Gen[Array[Byte]] = Gen.containerOf[Array, Byte](genByte)
+    private lazy val genValidErrorNoticeFieldsBuffer: Gen[(Fields, Buffer)] = for {
+      requiredFields    <-  validRequiredFieldsGen
+      optionalFields    <-  genOptionalFields
+    } yield {
+      val fields = requiredFields ::: optionalFields
+      val xs = fields.filterNot(x => x._2 == "")
+      val length = xs.foldLeft(0)((i,j) => i + 1 + lengthOfCStyleString(j._2)) + 1
+      val bw = BufferWriter(new Array[Byte](length))
+      xs.foreach(f => {
+        bw.writeByte(f._1.toByte)
+        bw.writeNullTerminatedString(f._2)
+      })
+      bw.writeByte(0x0)
+      (xs, Buffer(bw.toBytes))
+    }
 
-    implicit lazy val arbitraryErrorBytes: Arbitrary[Array[Byte]] =
-      Arbitrary(genByteArray)
+    private lazy val genInvalidErrorNoticeFieldsBuffer: Gen[(Fields, Buffer)] = for {
+      xs <-  invalidFieldsGen
+    } yield {
+      val length = xs.foldLeft(0)((i,j) => i + 1 + lengthOfCStyleString(j._2)) + 1
+      val bw = BufferWriter(new Array[Byte](length))
+      xs.foreach(f => {
+        bw.writeByte(f._1.toByte)
+        bw.writeNullTerminatedString(f._2)
+      })
+      bw.writeByte(0x0)
+      (xs, Buffer(bw.toBytes))
+    }
 
-    protected lazy val errorPacket: Gen[Packet] = for {
-      bytes   <-  arbitrary[Array[Byte]]
-    } yield new Packet(Some(Message.ErrorByte), Buffer(bytes))
+    protected lazy val validErrorPacketContainerGen: Gen[ErrorNoticePacketContainer] = for {
+      tuple <- genValidErrorNoticeFieldsBuffer
+    } yield {
+      val packet = new Packet(Some(Message.ErrorByte), tuple._2)
+      new ErrorNoticePacketContainer(packet, tuple._1)
+    }
 
+    protected lazy val invalidErrorPacketContainerGen: Gen[ErrorNoticePacketContainer] = for {
+      tuple <- genInvalidErrorNoticeFieldsBuffer
+    } yield {
+      val packet = new Packet(Some(Message.ErrorByte), tuple._2)
+      new ErrorNoticePacketContainer(packet, tuple._1)
+    }
+
+    protected lazy val validNoticePacketContainerGen: Gen[ErrorNoticePacketContainer] = for {
+      tuple <- genValidErrorNoticeFieldsBuffer
+    } yield {
+      val packet = new Packet(Some(Message.NoticeResponseByte), tuple._2)
+      new ErrorNoticePacketContainer(packet, tuple._1)
+    }
+
+    protected lazy val invalidNoticePacketContainerGen: Gen[ErrorNoticePacketContainer] = for {
+      tuple <- genInvalidErrorNoticeFieldsBuffer
+    } yield {
+      val packet = new Packet(Some(Message.NoticeResponseByte), tuple._2)
+      new ErrorNoticePacketContainer(packet, tuple._1)
+    }
+
+    case class ErrorNoticePacketContainer(packet: Packet, fields: List[(Char, String)])
   }
 
   trait CommandCompleteGen extends ScalaCheck {
@@ -302,18 +352,5 @@ object generators {
 
     implicit lazy val arbitraryFormatCode: Arbitrary[FormatCode] =
       Arbitrary(genFormatCode)
-  }
-
-  trait NoticeResponseGen extends ScalaCheck {
-    protected lazy val genByte: Gen[Byte] = arbitrary[Byte]
-    protected lazy val genByteArray: Gen[Array[Byte]] = Gen.containerOf[Array, Byte](genByte)
-
-    implicit lazy val arbitraryErrorBytes: Arbitrary[Array[Byte]] =
-      Arbitrary(genByteArray)
-
-    protected lazy val errorPacket: Gen[Packet] = for {
-      bytes   <-  arbitrary[Array[Byte]]
-    } yield new Packet(Some(Message.NoticeResponseByte), Buffer(bytes))
-
   }
 }
