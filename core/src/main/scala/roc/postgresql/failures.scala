@@ -30,7 +30,11 @@ object failures {
   final class ByteDecodingFailure(message: String) extends Failure {
     final override def getMessage: String = message
   }
-  
+
+  /** Represents a failed attempt to Decode an [[Element]] from it's Postgresql Representation.
+    * @see [[http://www.postgresql.org/docs/current/static/protocol-overview.html
+    *  50.1.3 Formats and Format Codes]]
+    */
   final class UnsupportedDecodingFailure(message: String) extends Failure {
     final override def getMessage: String = message
   }
@@ -75,16 +79,18 @@ object failures {
         case _ => false
       }
   }
-  
-  final class ColumnNotFoundException(symbol: Symbol) extends Failure {
-    final override def getMessage: String = s"Could not find column $symbol in Result"
+
+  /** Denotes a failure to find a [[Element]] in a [[Row]]
+    */
+  final class ElementNotFoundFailure(element: Symbol) extends Failure {
+    final override def getMessage: String = s"Could not find element $element in Row"
   }
-  
+
   final class PacketDecodingFailure(message: String) extends Failure {
     final override def getMessage: String = message
-  
+
     def canEqual(a: Any) = a.isInstanceOf[PacketDecodingFailure]
-  
+
     final override def equals(that: Any): Boolean = that match {
       case x: PacketDecodingFailure => x.canEqual(this) && getMessage == x.getMessage
       case _ => false

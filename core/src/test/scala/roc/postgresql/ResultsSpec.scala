@@ -7,18 +7,17 @@ import org.scalacheck.{Arbitrary, Gen}
 import org.specs2._
 import org.specs2.mock.Mockito
 import org.specs2.specification.core._
-import roc.postgresql.failures.ColumnNotFoundException
+import roc.postgresql.failures.ElementNotFoundFailure
 
 final class ResultsSpec extends Specification with ScalaCheck with Mockito { def is = s2"""
 
   Row
-    get[A](column) should throw ColumnNotFoundException for unknown column  $columnNotFound
+    get(column) must throw ElementNotFound failure for unknown column name  $columnNotFound
                                                                            """
   
   val columnNotFound = forAll { sym: Symbol =>
-    val m = mock[DataRow]
-    val row = new Row(List.empty[Column], m)
-    row.get[String](sym) must throwA[ColumnNotFoundException]
+    val row = new Row(List.empty[Element])
+    row.get(sym) must throwA[ElementNotFoundFailure]
   }
 
   lazy val genSymbol: Gen[Symbol] = for {
@@ -26,4 +25,4 @@ final class ResultsSpec extends Specification with ScalaCheck with Mockito { def
   } yield Symbol(str)
   implicit lazy val arbitrarySymbol: Arbitrary[Symbol] =
     Arbitrary(genSymbol)
-}                                                  
+}
