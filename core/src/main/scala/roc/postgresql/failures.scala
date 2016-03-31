@@ -103,7 +103,9 @@ object failures {
     }
   }
 
-  /** Denotes a failure to decode an [[PostgresqlMessage]] from the Postgresql Server
+  /** Denotes a failure to decode a 
+    *  [[http://www.postgresql.org/docs/current/static/errcodes-appendix.html PostgresqlMessage]]
+    *  from the Postgresql Server
     *
     * @constructor creates an error response decoding failure from all error messages
     * @param xs a [[cats.data.NonEmptyList]] of all decoding failures
