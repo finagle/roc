@@ -16,6 +16,7 @@ lazy val compilerOptions = Seq(
   "-Yno-adapted-args",
   "-Ywarn-dead-code",
   "-Ywarn-value-discard",
+  "-Ypatmat-exhaust-depth", "off",
   "-Xfuture"
 )
 
@@ -32,7 +33,7 @@ scalacOptions in Test ++= Seq("-Yrangepos")
 
 lazy val baseSettings = Seq(
   scalacOptions ++= compilerOptions, 
-  scalacOptions in (Compile, console) := compilerOptions,
+  scalacOptions in (Compile, console) := compilerOptions, 
   libraryDependencies ++= testDependencies.map(_ % "test"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
   coverageEnabled := true,
