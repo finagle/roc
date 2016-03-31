@@ -196,8 +196,8 @@ object generators {
         bw.writeShort(f.dataTypeSize)
         bw.writeInt(f.typeModifier)
         f.formatCode match {
-          case Text   => bw.writeShort(0.toShort)
-          case Binary => bw.writeShort(1.toShort)
+          case TextFormat   => bw.writeShort(0.toShort)
+          case BinaryFormat => bw.writeShort(1.toShort)
         }
       })
       val packet = Packet(Some(Message.RowDescriptionByte), Buffer(bw.toBytes))
@@ -348,7 +348,7 @@ object generators {
   }
 
   trait FormatCodeGen extends ScalaCheck {
-    protected lazy val genFormatCode: Gen[FormatCode] = Gen.oneOf(Text, Binary)
+    protected lazy val genFormatCode: Gen[FormatCode] = Gen.oneOf(TextFormat, BinaryFormat)
 
     implicit lazy val arbitraryFormatCode: Arbitrary[FormatCode] =
       Arbitrary(genFormatCode)

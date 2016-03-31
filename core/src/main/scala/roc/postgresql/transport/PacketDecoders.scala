@@ -111,8 +111,8 @@ private[postgresql] trait PacketDecoderImplicits {
               val dataTypeSize = br.readShort
               val typeModifier = br.readInt
               val formatCode = br.readShort match {
-                case 0 => Text
-                case 1 => Binary
+                case 0 => TextFormat
+                case 1 => BinaryFormat
                 case s => throw new Exception(s"Unknown format code $s.")
               }
 

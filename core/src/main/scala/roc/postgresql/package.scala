@@ -4,10 +4,7 @@ import roc.postgresql.transport.{PacketDecoder, PacketDecoderImplicits, Packet, 
   PacketEncoderImplicits}
 import java.nio.charset.StandardCharsets
 
-package object postgresql
-  extends ByteDecoderImplicits
-  with PacketEncoderImplicits 
-  with PacketDecoderImplicits {
+package object postgresql extends PacketEncoderImplicits with PacketDecoderImplicits {
 
   def encodePacket[A <: FrontendMessage: PacketEncoder](a: A): Packet = 
     implicitly[PacketEncoder[A]].apply(a)
