@@ -52,7 +52,13 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
     (implicit f: PacketEncoder[A]): Future[Message] = trans.write(f(fm)) rescue {
         wrapWriteException
       } before {
-        trans.read().flatMap(decode(_))
+        for {
+          packet <- trans.read()
+          message <- Message.decode(packet) match {
+            case Xor.Left(l)  => Future.exception(l)
+            case Xor.Right(m) => Future.value(m)
+          }
+        } yield message
       }
 
   /**
@@ -115,56 +121,6 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
       ()
     }
 
-  private[this] def decode(packet: Packet): Future[Message] = packet.messageType match {
-    case Some(mt) if mt === Message.AuthenticationMessageByte =>
-      decodePacket[AuthenticationMessage](packet) match {
-        case Xor.Right(r) => Future.value(r)
-        case Xor.Left(l)  => Future.exception(l)
-      }
-    case Some(mt) if mt === Message.ErrorByte => decodePacket[ErrorResponse](packet) match {
-      case Xor.Right(r) => Future.value(r)
-      case Xor.Left(l)  => Future.exception(l)
-    }
-    case Some(mt) if mt === Message.ParameterStatusByte => 
-      decodePacket[ParameterStatus](packet) match {
-        case Xor.Right(r) => Future.value(r)
-        case Xor.Left(l)  => Future.exception(l)
-      }
-    case Some(mt) if mt === Message.BackendKeyDataByte => 
-      decodePacket[BackendKeyData](packet) match {
-        case Xor.Right(r) => Future.value(r)
-        case Xor.Left(l)  => Future.exception(l)
-      }
-    case Some(mt) if mt === Message.ReadyForQueryByte => decodePacket[ReadyForQuery](packet) match {
-      case Xor.Right(r) => Future.value(r)
-      case Xor.Left(l)  => Future.exception(l)
-    }
-    case Some(mt) if mt === Message.RowDescriptionByte => 
-      decodePacket[RowDescription](packet) match {
-        case Xor.Right(r) => Future.value(r)
-        case Xor.Left(l)  => Future.exception(l)
-      }
-    case Some(mt) if mt === Message.DataRowByte => decodePacket[DataRow](packet) match {
-      case Xor.Right(r) => Future.value(r)
-      case Xor.Left(l)  => Future.exception(l)
-    }
-    case Some(mt) if mt === Message.CommandCompleteByte => 
-      decodePacket[CommandComplete](packet) match {
-        case Xor.Right(r) => Future.value(r)
-        case Xor.Left(l)  => Future.exception(l)
-      }
-    case Some(mt) if mt === Message.EmptyQueryResponseByte => Future.value(EmptyQueryResponse)
-    case Some(m) => {
-        println(m)
-        println("INside Some(m)")
-        Future.exception(new Exception())
-    }
-      case None    => {
-        close()
-        Future.exception(new Exception())
-      }
-    }
-
   /** Performs the Authenticaion portion of the Startup Phase
     */
   private[this] def authenticationPhase: Future[Unit] = {
@@ -196,14 +152,15 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
       safetyCheck match {
         // TODO - create an Error type for this
         case x if x > 1000 => Future.exception(new Exception())
-        case x if x < 1000 => trans.read().flatMap(packet =>
-          decode(packet).flatMap(msg => msg match {
-            case p: ParameterStatus  => go(safetyCheck + 1, p :: xs, ys)
-            case bkd: BackendKeyData => go(safetyCheck + 1, xs, bkd :: ys)
-            case Idle => Future.value((xs, ys))
-            case _ => Future.exception(new Exception())
-          })
-        )
+        case x if x < 1000 => trans.read().flatMap(packet => Message.decode(packet) match {
+          case Xor.Left(l) => Future.exception(l)
+          case Xor.Right(ParameterStatus(i, j)) => go(safetyCheck + 1, ParameterStatus(i,j) :: xs, ys)
+          case Xor.Right(BackendKeyData(i, j)) => go(safetyCheck + 1, xs, BackendKeyData(i, j) :: ys)
+          case Xor.Right(Idle) => Future.value((xs, ys))
+          case Xor.Right(message) => Future.exception(
+            new PostgresqlStateMachineFailure("StartupMessage", message.toString)
+          )
+        })
       }
 
     go(0, List.empty[ParameterStatus], List.empty[BackendKeyData]).flatMap(tuple => {

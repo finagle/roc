@@ -12,7 +12,6 @@ import roc.postgresql.failures._
 final class FailuresSpec extends Specification with ScalaCheck { def is = s2"""
 
   Failure
-    UnknownPostgresTypeFailure should have correct message           $unknownPostgresTypeFailure
     ReadyForQueryDecodingFailure should have correct message         $readyForQueryDecodingFailure
     UnknownAuthenticationFailure should have correct message         $unknownAuthRequestFailure
     UnsupportedAuthenticationFailure should have correct message     $unsupportedAuthFailure
@@ -20,12 +19,6 @@ final class FailuresSpec extends Specification with ScalaCheck { def is = s2"""
     UnknownPostgresqlMessageTypeFailure should have correct message  $unknownPostgresqlMessageTypeFailure
     PostgresqlMessageDecodingFailure must have a correct error message   $postgresqlMessageDecodingFailure
                                                                          """
-
-  val unknownPostgresTypeFailure = forAll { n: Int =>
-    val msg = s"Postgres Object ID $n is unknown"
-    val error = new UnknownPostgresTypeFailure(n)
-    error.getMessage must_== msg
-  }
 
   val readyForQueryDecodingFailure = forAll { c: Char =>
     val msg = s"Received unexpected Char $c from Postgres Server."
