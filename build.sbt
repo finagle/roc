@@ -1,3 +1,7 @@
+import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
+import sbtunidoc.Plugin.UnidocKeys._
+import ScoverageSbtPlugin._
+
 lazy val buildSettings = Seq(
   organization := "com.github.finagle",
   scalaVersion := "2.11.7",
@@ -34,11 +38,19 @@ scalacOptions in Test ++= Seq("-Yrangepos")
 lazy val baseSettings = Seq(
   scalacOptions ++= compilerOptions, 
   scalacOptions in (Compile, console) := compilerOptions, 
+  scalacOptions in (Compile, doc) ++= Seq(
+    "-doc-title", "Roc",
+    "-doc-version", version.value,
+    "-groups"
+  ),
   libraryDependencies ++= testDependencies.map(_ % "test"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
   coverageEnabled := true,
+  autoAPIMappings := true,
   resolvers += "Twitter Maven repo" at "http://maven.twttr.com/"
 )
+
+//enablePlugins(SiteScaladocPlugin)
 
 lazy val allSettings = buildSettings ++ baseSettings 
 
@@ -53,7 +65,7 @@ lazy val nettyVersion = "4.1.0.CR2"
 lazy val roc = project.in(file("."))
   .settings(moduleName := "root")
   .settings(allSettings)
-  .settings(noPublishSettings)
+  .settings(docSettings)
   .aggregate(core)
   .dependsOn(core)
 
@@ -61,6 +73,7 @@ lazy val core =  project
   .settings(moduleName := "roc-core")
   .settings(version := coreVersion)
   .settings(allSettings:_*)
+  .settings(docSettings)
   .settings(
     libraryDependencies ++= Seq(
       "org.typelevel"   %%  "cats"          %  catsVersion,
@@ -111,4 +124,12 @@ lazy val noPublishSettings = Seq(
   publish := (),
   publishLocal := (),
   publishArtifact := false
+)
+
+lazy val docSettings = site.settings ++ ghpages.settings ++ unidocSettings ++ Seq(
+  autoAPIMappings := true,
+  ghpagesNoJekyll := false,
+  site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "docs"),
+  git.remoteRepo := "git@github.com:finagle/roc.git",
+  unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject
 )
