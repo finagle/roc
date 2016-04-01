@@ -1,0 +1,163 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>roc - Roc 0.0.1-SNAPSHOT - roc</title>
+          <meta name="description" content="roc - Roc 0.0.1 - SNAPSHOT - roc" />
+          <meta name="keywords" content="roc Roc 0.0.1 SNAPSHOT roc" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../lib/template.js"></script>
+      <script type="text/javascript" src="../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../index.html';
+            var hash = 'roc.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img alt="Package" src="../lib/package_big.png" />
+        
+        <h1>roc</h1><span class="permalink">
+      <a href="../index.html#roc.package" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">roc</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="roc.PostgresqlRichClient" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="PostgresqlRichClientextendsAnyRef"></a>
+      <a id="PostgresqlRichClient:PostgresqlRichClient"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="PostgresqlRichClient.html"><span class="name">PostgresqlRichClient</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#roc.package@PostgresqlRichClientextendsAnyRef" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Rich builder methods for <a href="Postgresql$.html" class="extype" name="roc.Postgresql">roc.Postgresql</a></p><div class="fullcomment"><div class="comment cmt"><p>Rich builder methods for <a href="Postgresql$.html" class="extype" name="roc.Postgresql">roc.Postgresql</a></p><p>Supplements a Finagle Client with convenient builder methods for
+constructing a Postgresql Client.
+</p></div></div>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="roc.Postgresql" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Postgresql"></a>
+      <a id="Postgresql:Postgresql"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Postgresql$.html"><span class="name">Postgresql</span></a><span class="result"> extends <a href="https://twitter.github.io/finagle/docs/index.html#com.twitter.finagle.Client" class="extype" target="_top">Client</a>[<a href="postgresql/Request.html" class="extype" name="roc.postgresql.Request">Request</a>, <a href="postgresql/Result.html" class="extype" name="roc.postgresql.Result">Result</a>] with <a href="PostgresqlRichClient.html" class="extype" name="roc.PostgresqlRichClient">PostgresqlRichClient</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#roc.package@Postgresql" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Finagle Client that connects to Postgresql Server(s).</p><div class="fullcomment"><div class="comment cmt"><p>A Finagle Client that connects to Postgresql Server(s).
+</p></div><dl class="attributes block"> <div class="block">Example:
+               <ol><li class="cmt"><p></p><pre><span class="kw">val</span> client = Postgresql.client
+  .withDatabase(<span class="lit">"postgres"</span>)
+  .withUserAndPasswd(<span class="lit">"username"</span>, <span class="lit">"password"</span>)
+  .newRichClient(<span class="lit">"localhost:5432"</span>)</pre></li></ol>
+            </div></dl></div>
+    </li><li name="roc.postgresql" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="postgresql"></a>
+      <a id="postgresql:postgresql"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="postgresql/package.html"><span class="name">postgresql</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#roc.package@postgresql" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>

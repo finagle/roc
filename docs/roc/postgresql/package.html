@@ -1,0 +1,733 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>postgresql - Roc 0.0.1-SNAPSHOT - roc.postgresql</title>
+          <meta name="description" content="postgresql - Roc 0.0.1 - SNAPSHOT - roc.postgresql" />
+          <meta name="keywords" content="postgresql Roc 0.0.1 SNAPSHOT roc.postgresql" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../lib/template.js"></script>
+      <script type="text/javascript" src="../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../index.html';
+            var hash = 'roc.postgresql.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img alt="Package" src="../../lib/package_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="roc">roc</a></p>
+        <h1>postgresql</h1><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">postgresql</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><span class="extype" name="roc.postgresql.transport.PacketDecoderImplicits">PacketDecoderImplicits</span>, <span class="extype" name="roc.postgresql.transport.PacketEncoderImplicits">PacketEncoderImplicits</span>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="roc.postgresql"><span>postgresql</span></li><li class="in" name="roc.postgresql.transport.PacketDecoderImplicits"><span>PacketDecoderImplicits</span></li><li class="in" name="roc.postgresql.transport.PacketEncoderImplicits"><span>PacketEncoderImplicits</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="roc.postgresql.Binary" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BinaryextendsElementwithProductwithSerializable"></a>
+      <a id="Binary:Binary"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Binary.html"><span class="name">Binary</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Symbol">Symbol</span></span>, <span name="columnType">columnType: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="value">value: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Byte" class="extype" target="_top">Byte</a>]</span>)</span><span class="result"> extends <a href="Element.html" class="extype" name="roc.postgresql.Element">Element</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@BinaryextendsElementwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="roc.postgresql.Client" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ClientextendsClosable"></a>
+      <a id="Client:Client"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Client.html"><span class="name">Client</span></a><span class="result"> extends <a href="https://twitter.github.io/util/docs/index.html#com.twitter.util.Closable" class="extype" target="_top">Closable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@ClientextendsClosable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="roc.postgresql.Column" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ColumnextendsProductwithSerializable"></a>
+      <a id="Column:Column"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Column.html"><span class="name">Column</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@ColumnextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Column of data returned</p>
+    </li><li name="roc.postgresql.Element" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ElementextendsAnyRef"></a>
+      <a id="Element:Element"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Element.html"><span class="name">Element</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@ElementextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Represents and Element in a returned Result
+</p>
+    </li><li name="roc.postgresql.ElementDecoder" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ElementDecoder[A]extendsAnyRef"></a>
+      <a id="ElementDecoder[A]:ElementDecoder[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ElementDecoder.html"><span class="name">ElementDecoder</span></a><span class="tparams">[<span name="A">A</span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@ElementDecoder[A]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="roc.postgresql.FormatCode" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="FormatCodeextendsAnyRef"></a>
+      <a id="FormatCode:FormatCode"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="FormatCode.html"><span class="name">FormatCode</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@FormatCodeextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Format of data being returned by Postgresql.</p><div class="fullcomment"><div class="comment cmt"><p>Format of data being returned by Postgresql.</p><p>Currently there are only two types, Text and Binary.
+</p></div></div>
+    </li><li name="roc.postgresql.Null" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NullextendsElementwithProductwithSerializable"></a>
+      <a id="Null:Null"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Null.html"><span class="name">Null</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Symbol">Symbol</span></span>, <span name="columnType">columnType: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result"> extends <a href="Element.html" class="extype" name="roc.postgresql.Element">Element</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@NullextendsElementwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="roc.postgresql.Request" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RequestextendsProductwithSerializable"></a>
+      <a id="Request:Request"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Request.html"><span class="name">Request</span></a><span class="params">(<span name="query">query: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@RequestextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Request to send a Postgresql Server
+</p>
+    </li><li name="roc.postgresql.Result" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ResultextendsAnyRef"></a>
+      <a id="Result:Result"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Result.html"><span class="name">Result</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@ResultextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="roc.postgresql.Row" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RowextendsIterable[roc.postgresql.Element]"></a>
+      <a id="Row:Row"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Row.html"><span class="name">Row</span></a><span class="result"> extends <span class="extype" name="scala.Iterable">Iterable</span>[<a href="Element.html" class="extype" name="roc.postgresql.Element">Element</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@RowextendsIterable[roc.postgresql.Element]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A row returned from a Postgresql Server containing at least one
+ <a href="Element.html" class="extype" name="roc.postgresql.Element">Element</a></p>
+    </li><li name="roc.postgresql.StdClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StdClientextendsClient"></a>
+      <a id="StdClient:StdClient"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="StdClient.html"><span class="name">StdClient</span></a><span class="result"> extends <a href="Client.html" class="extype" name="roc.postgresql.Client">Client</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@StdClientextendsClient" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="roc.postgresql.Text" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TextextendsElementwithProductwithSerializable"></a>
+      <a id="Text:Text"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Text.html"><span class="name">Text</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Symbol">Symbol</span></span>, <span name="columnType">columnType: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="Element.html" class="extype" name="roc.postgresql.Element">Element</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@TextextendsElementwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="roc.postgresql.BinaryFormat" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="BinaryFormat"></a>
+      <a id="BinaryFormat:BinaryFormat"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="BinaryFormat$.html"><span class="name">BinaryFormat</span></a><span class="result"> extends <a href="FormatCode.html" class="extype" name="roc.postgresql.FormatCode">FormatCode</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@BinaryFormat" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Data represented in Binary format.</p><div class="fullcomment"><div class="comment cmt"><p>Data represented in Binary format.</p></div><dl class="attributes block"> <dt>Note</dt><dd><span class="cmt"><p>Postgresql Binary is always BIG ENDIAN.</p></span></dd></dl></div>
+    </li><li name="roc.postgresql.Client" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Client"></a>
+      <a id="Client:Client"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Client$.html"><span class="name">Client</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@Client" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="roc.postgresql.Column" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Column"></a>
+      <a id="Column:Column"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Column$.html"><span class="name">Column</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@Column" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="roc.postgresql.TextFormat" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TextFormat"></a>
+      <a id="TextFormat:TextFormat"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="TextFormat$.html"><span class="name">TextFormat</span></a><span class="result"> extends <a href="FormatCode.html" class="extype" name="roc.postgresql.FormatCode">FormatCode</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@TextFormat" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Data represented by a String format.</p>
+    </li><li name="roc.postgresql.transport.PacketDecoderImplicits#authenticationMessagePacketDecoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="authenticationMessagePacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.AuthenticationMessage]"></a>
+      <a id="authenticationMessagePacketDecoder:PacketDecoder[AuthenticationMessage]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">authenticationMessagePacketDecoder</span><span class="result">: <span class="extype" name="roc.postgresql.transport.PacketDecoder">PacketDecoder</span>[<span class="extype" name="roc.postgresql.AuthenticationMessage">AuthenticationMessage</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@authenticationMessagePacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.AuthenticationMessage]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PacketDecoderImplicits</dd></dl></div>
+    </li><li name="roc.postgresql.transport.PacketDecoderImplicits#backendKeyDataPacketDecoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="backendKeyDataPacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.BackendKeyData]"></a>
+      <a id="backendKeyDataPacketDecoder:PacketDecoder[BackendKeyData]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">backendKeyDataPacketDecoder</span><span class="result">: <span class="extype" name="roc.postgresql.transport.PacketDecoder">PacketDecoder</span>[<span class="extype" name="roc.postgresql.BackendKeyData">BackendKeyData</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@backendKeyDataPacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.BackendKeyData]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PacketDecoderImplicits</dd></dl></div>
+    </li><li name="roc.postgresql.transport.PacketDecoderImplicits#commandCompletePacketDecoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="commandCompletePacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.CommandComplete]"></a>
+      <a id="commandCompletePacketDecoder:PacketDecoder[CommandComplete]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">commandCompletePacketDecoder</span><span class="result">: <span class="extype" name="roc.postgresql.transport.PacketDecoder">PacketDecoder</span>[<span class="extype" name="roc.postgresql.CommandComplete">CommandComplete</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@commandCompletePacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.CommandComplete]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PacketDecoderImplicits</dd></dl></div>
+    </li><li name="roc.postgresql.transport.PacketDecoderImplicits#dataRowPacketDecoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="dataRowPacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.DataRow]"></a>
+      <a id="dataRowPacketDecoder:PacketDecoder[DataRow]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">dataRowPacketDecoder</span><span class="result">: <span class="extype" name="roc.postgresql.transport.PacketDecoder">PacketDecoder</span>[<span class="extype" name="roc.postgresql.DataRow">DataRow</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@dataRowPacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.DataRow]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PacketDecoderImplicits</dd></dl></div>
+    </li><li name="roc.postgresql#decodePacket" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="decodePacket[A&lt;:roc.postgresql.BackendMessage](p:roc.postgresql.transport.Packet)(implicitevidence$2:roc.postgresql.transport.PacketDecoder[A]):roc.postgresql.transport.PacketDecoder.Result[A]"></a>
+      <a id="decodePacket[A&lt;:BackendMessage](Packet)(PacketDecoder[A]):postgresql.transport.PacketDecoder.Result[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">decodePacket</span><span class="tparams">[<span name="A">A &lt;: <span class="extype" name="roc.postgresql.BackendMessage">BackendMessage</span></span>]</span><span class="params">(<span name="p">p: <span class="extype" name="roc.postgresql.transport.Packet">Packet</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="roc.postgresql.transport.PacketDecoder">PacketDecoder</span>[<span class="extype" name="roc.postgresql.decodePacket.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="roc.postgresql.transport.PacketDecoder.Result">postgresql.transport.PacketDecoder.Result</span>[<span class="extype" name="roc.postgresql.decodePacket.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@decodePacket[A&lt;:roc.postgresql.BackendMessage](p:roc.postgresql.transport.Packet)(implicitevidence$2:roc.postgresql.transport.PacketDecoder[A]):roc.postgresql.transport.PacketDecoder.Result[A]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="roc.postgresql#encodePacket" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="encodePacket[A&lt;:roc.postgresql.FrontendMessage](a:A)(implicitevidence$1:roc.postgresql.transport.PacketEncoder[A]):roc.postgresql.transport.Packet"></a>
+      <a id="encodePacket[A&lt;:FrontendMessage](A)(PacketEncoder[A]):Packet"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">encodePacket</span><span class="tparams">[<span name="A">A &lt;: <span class="extype" name="roc.postgresql.FrontendMessage">FrontendMessage</span></span>]</span><span class="params">(<span name="a">a: <span class="extype" name="roc.postgresql.encodePacket.A">A</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="roc.postgresql.transport.PacketEncoder">PacketEncoder</span>[<span class="extype" name="roc.postgresql.encodePacket.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="roc.postgresql.transport.Packet">Packet</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@encodePacket[A&lt;:roc.postgresql.FrontendMessage](a:A)(implicitevidence$1:roc.postgresql.transport.PacketEncoder[A]):roc.postgresql.transport.Packet" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="roc.postgresql.transport.PacketDecoderImplicits#errorMessagePacketDecoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="errorMessagePacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.ErrorResponse]"></a>
+      <a id="errorMessagePacketDecoder:PacketDecoder[ErrorResponse]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">errorMessagePacketDecoder</span><span class="result">: <span class="extype" name="roc.postgresql.transport.PacketDecoder">PacketDecoder</span>[<span class="extype" name="roc.postgresql.ErrorResponse">ErrorResponse</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@errorMessagePacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.ErrorResponse]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PacketDecoderImplicits</dd></dl></div>
+    </li><li name="roc.postgresql.failures" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="failures"></a>
+      <a id="failures:failures"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="failures$.html"><span class="name">failures</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@failures" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="roc.postgresql#lengthOfCStyleString" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="lengthOfCStyleString(str:String):Int"></a>
+      <a id="lengthOfCStyleString(String):Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lengthOfCStyleString</span><span class="params">(<span name="str">str: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@lengthOfCStyleString(str:String):Int" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="roc.postgresql#lengthOfCStyleStrings" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="lengthOfCStyleStrings(xs:List[String]):Int"></a>
+      <a id="lengthOfCStyleStrings(List[String]):Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lengthOfCStyleStrings</span><span class="params">(<span name="xs">xs: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@lengthOfCStyleStrings(xs:List[String]):Int" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="roc.postgresql.transport.PacketDecoderImplicits#noticeResponsePacketDecoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="noticeResponsePacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.NoticeResponse]"></a>
+      <a id="noticeResponsePacketDecoder:PacketDecoder[NoticeResponse]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">noticeResponsePacketDecoder</span><span class="result">: <span class="extype" name="roc.postgresql.transport.PacketDecoder">PacketDecoder</span>[<span class="extype" name="roc.postgresql.NoticeResponse">NoticeResponse</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@noticeResponsePacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.NoticeResponse]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PacketDecoderImplicits</dd></dl></div>
+    </li><li name="roc.postgresql.transport.PacketDecoderImplicits#parameterStatusPacketDecoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="parameterStatusPacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.ParameterStatus]"></a>
+      <a id="parameterStatusPacketDecoder:PacketDecoder[ParameterStatus]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">parameterStatusPacketDecoder</span><span class="result">: <span class="extype" name="roc.postgresql.transport.PacketDecoder">PacketDecoder</span>[<span class="extype" name="roc.postgresql.ParameterStatus">ParameterStatus</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@parameterStatusPacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.ParameterStatus]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PacketDecoderImplicits</dd></dl></div>
+    </li><li name="roc.postgresql.transport.PacketEncoderImplicits#passwordMessageEncoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="passwordMessageEncoder:roc.postgresql.transport.PacketEncoder[roc.postgresql.PasswordMessage]"></a>
+      <a id="passwordMessageEncoder:PacketEncoder[PasswordMessage]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">passwordMessageEncoder</span><span class="result">: <span class="extype" name="roc.postgresql.transport.PacketEncoder">PacketEncoder</span>[<span class="extype" name="roc.postgresql.PasswordMessage">PasswordMessage</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@passwordMessageEncoder:roc.postgresql.transport.PacketEncoder[roc.postgresql.PasswordMessage]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PacketEncoderImplicits</dd></dl></div>
+    </li><li name="roc.postgresql.transport.PacketEncoderImplicits#queryMessageEncoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="queryMessageEncoder:roc.postgresql.transport.PacketEncoder[roc.postgresql.Query]"></a>
+      <a id="queryMessageEncoder:PacketEncoder[Query]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">queryMessageEncoder</span><span class="result">: <span class="extype" name="roc.postgresql.transport.PacketEncoder">PacketEncoder</span>[<span class="extype" name="roc.postgresql.Query">Query</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@queryMessageEncoder:roc.postgresql.transport.PacketEncoder[roc.postgresql.Query]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PacketEncoderImplicits</dd></dl></div>
+    </li><li name="roc.postgresql.transport.PacketDecoderImplicits#readyForQueryPacketDecoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="readyForQueryPacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.ReadyForQuery]"></a>
+      <a id="readyForQueryPacketDecoder:PacketDecoder[ReadyForQuery]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">readyForQueryPacketDecoder</span><span class="result">: <span class="extype" name="roc.postgresql.transport.PacketDecoder">PacketDecoder</span>[<span class="extype" name="roc.postgresql.ReadyForQuery">ReadyForQuery</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@readyForQueryPacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.ReadyForQuery]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PacketDecoderImplicits</dd></dl></div>
+    </li><li name="roc.postgresql.transport.PacketDecoderImplicits#rowDescriptionPacketDecoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="rowDescriptionPacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.RowDescription]"></a>
+      <a id="rowDescriptionPacketDecoder:PacketDecoder[RowDescription]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rowDescriptionPacketDecoder</span><span class="result">: <span class="extype" name="roc.postgresql.transport.PacketDecoder">PacketDecoder</span>[<span class="extype" name="roc.postgresql.RowDescription">RowDescription</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@rowDescriptionPacketDecoder:roc.postgresql.transport.PacketDecoder[roc.postgresql.RowDescription]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PacketDecoderImplicits</dd></dl></div>
+    </li><li name="roc.postgresql.server" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="server"></a>
+      <a id="server:server"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="server/package.html"><span class="name">server</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@server" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="roc.postgresql.transport.PacketEncoderImplicits#startupMessageEncoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="startupMessageEncoder:roc.postgresql.transport.PacketEncoder[roc.postgresql.StartupMessage]"></a>
+      <a id="startupMessageEncoder:PacketEncoder[StartupMessage]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">startupMessageEncoder</span><span class="result">: <span class="extype" name="roc.postgresql.transport.PacketEncoder">PacketEncoder</span>[<span class="extype" name="roc.postgresql.StartupMessage">StartupMessage</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@startupMessageEncoder:roc.postgresql.transport.PacketEncoder[roc.postgresql.StartupMessage]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PacketEncoderImplicits</dd></dl></div>
+    </li><li name="roc.postgresql.transport.PacketEncoderImplicits#terminateMessageEncoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="terminateMessageEncoder:roc.postgresql.transport.PacketEncoder[roc.postgresql.Terminate]"></a>
+      <a id="terminateMessageEncoder:PacketEncoder[Terminate]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">terminateMessageEncoder</span><span class="result">: <span class="extype" name="roc.postgresql.transport.PacketEncoder">PacketEncoder</span>[<span class="extype" name="roc.postgresql.Terminate">Terminate</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#roc.postgresql.package@terminateMessageEncoder:roc.postgresql.transport.PacketEncoder[roc.postgresql.Terminate]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PacketEncoderImplicits</dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="roc.postgresql.transport.PacketDecoderImplicits">
+              <h3>Inherited from <span class="extype" name="roc.postgresql.transport.PacketDecoderImplicits">PacketDecoderImplicits</span></h3>
+            </div><div class="parent" name="roc.postgresql.transport.PacketEncoderImplicits">
+              <h3>Inherited from <span class="extype" name="roc.postgresql.transport.PacketEncoderImplicits">PacketEncoderImplicits</span></h3>
+            </div><div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
