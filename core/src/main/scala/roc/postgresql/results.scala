@@ -6,7 +6,8 @@ import cats.Show
 import roc.postgresql.failures.{ElementNotFoundFailure, UnsupportedDecodingFailure}
 import roc.postgresql.server.PostgresqlMessage
 
-final class Result(rowDescription: List[RowDescription], data: List[DataRow], cc: String = "") {
+final class Result(rowDescription: List[RowDescription], data: List[DataRow], cc: String = "")
+  extends Iterable[Row] {
 
   val columns = rowDescription match {
     case h :: t => h.fields
@@ -17,7 +18,7 @@ final class Result(rowDescription: List[RowDescription], data: List[DataRow], cc
     case t => Array.empty[Column]
   }
 
-  val rows: List[Row] = data.map(x => {
+  private[this] val rows: List[Row] = data.map(x => {
     @annotation.tailrec
     def loop(xs: List[Option[Array[Byte]]], ys: List[Element], i: Int): List[Element] = xs match {
       case h :: t => {
@@ -105,10 +106,7 @@ object Column {
   * @param elements a collection of all [[row.postgresql.Element Elements]] returned from 
   *   Postgresql via a query.
   */
-final class Row private[postgresql](private[postgresql] val elements: List[Element])
-  extends Iterable[Element] {
-
-  def iterator: Iterator[Element] = elements.iterator
+final class Row private[postgresql](private[postgresql] val elements: List[Element]) {
 
   /** Returns the [[roc.postgresql.Element Element]] found via the column name
     *

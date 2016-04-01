@@ -2,19 +2,31 @@
 
 roc is a modern [Finagle][finagle] [Postgresql][postgresql] [Client][finagle-client]. What's modern? A Client relying on a [6.x +][finagle-changelog] version of Finagle.
 
-roc is currently under heavy development and is not being published with a current version of `0.0.1-ALPHA`.
-If you need a real driver right now you should absolutely use [finagle-postgres][finagle-postgresql-existing].
-
-
 ## Badges
 [![PyPI](https://img.shields.io/pypi/l/Django.svg?style=plastic)]()
-[![Circle CI](https://circleci.com/gh/penland365/roc/tree/master.svg?style=svg&circle-token=07305c9575ac3fcf0ab5bade8ae2f29921ac04c9)](https://circleci.com/gh/penland365/roc/tree/master)
-[![codecov.io](https://codecov.io/github/penland365/roc/coverage.svg?branch=master)](https://codecov.io/github/penland365/roc?branch=master)
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.finagle/roc-core_2.11.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/com.github.finagle/roc-core_2.11)
+[![Codecov branch](https://img.shields.io/codecov/c/github/finagle/roc/master.svg?style=plastic)](https://codecov.io/github/finagle/roc?branch=master)
+[![CircleCI branch](https://img.shields.io/circleci/project/finagle/roc/master.svg?style=plastic)](https://circleci.com/gh/finagle/roc/tree/master)
+[![Gitter](https://img.shields.io/badge/gitter-join%20chat-green.svg)]((https://gitter.im/finagle/roc?)
+
 
 ## tl;dr
-roc is not being published yet. You'll have to clone/fork this repository, then build locally.
+Roc is published to [Maven Central], so for the latest stable version add the following to your build:
+```scala
+libraryDependencies ++= Seq(
+  "com.github.finagle" %% "roc-core" % "0.0.1"
+)
+```
+Roc is under heavy development, so to stay up to with the latest `SNAPSHOT` version add the following to your build instead:
+```scala
+resolvers += Resolver.sonatypeRepo("snapshots")
 
-Once built, open `sbt console` and insert the following
+libraryDependencies ++= Seq(
+  "com.github.finagle"  %% "roc-core" % "0.0.2-SNAPSHOT" changing()
+)
+```
+
+Open `sbt console` and insert the following
 ```scala
 scala > :paste
 import com.twitter.util.Await
@@ -28,47 +40,111 @@ val client = Postgresql.client
 val req = new Request("SELECT * FROM STATES;")
 val result = Await.result(client.query(req))
 ```
-A result contains two types, a list of columns detailing information about
-the result, and a list of rows returned from the database.
+If you're into Scaladocs ( I am ), they can be found [here][Scaladocs].
+
+## Tell me about Result
+The most important type in Roc is [Result](http://finagle.github.io/roc/docs/#roc.postgresql.Result), the type returned after a Postgresql query is executed. Result implements [Iterable](http://www.scala-lang.org/api/current/#scala.collection.Iterable) so that it can be viewed as a collection of [Rows](http://finagle.github.io/roc/docs/#roc.postgresql.Row).
+The two additional members of `Result` are:
 ```scala
-scala> result.columns
+val result = client.query(new Request("SELECT * FROM FOO;"))
 
-res1: List[com.github.finagle.roc.postgresql.Column] =
-  List(Column(name='id, columnType=Int4, formatCode=Text),
-   Column(name='name, columnType=VarChar, formatCode=Text), Column(name='abbrv, columnType=VarChar, formatCode=Text), Column(name='last_modified_at, columnType=TimestampWithTimezone, formatCode=Text),
-   Column(name='inserted_at, columnType=TimestampWithTimezone, formatCode=Text)
-  )
-
-scala> :paste
-
-val display = (r: Row) => {
-  val id = r.get[Int]('id)
-  val name = r.get[String]('name)
-  val abbrv = r.get[String]('abbrv)
-  val insertedAt = r.get[String]('inserted_at)
-  val lastModifiedAt = r.get[String]('last_modified_at)
-  println(s"Row $id, $name, $abbrv, $insertedAt, $lastModifiedAt")
-}
-// Exiting paste mode, now interpreting.
-
-display: com.github.finagle.roc.postgresql.Row => Unit = <function1>
-
-scala> result.rows.map(display(_))
-Row 1, North Dakota, ND, 2016-02-18 09:50:55.445246-06, 2016-02-18 09:50:55.445246-06
-res4: List[Unit] = List(())
+result.columns // all column information returned from the Request
+result.completedCommand // a String representation of what happend
 ```
-At the moment, we can only return `Ints` and `Strings` (I told you it was `ALPHA`).
-The good news is that most `Postgresql` columns can be read as strings first, then transformed into the appropriate type
- ( see the handling of Timestamps With TimeZone above).
+#### Result.completedCommand
+* For an INSERT command, the tag is INSERT oid rows, where rows is the number of rows inserted. oid is the object ID of the inserted row if rows is 1 and the target table has OIDs; otherwise oid is 0.
+* For a DELETE command, the tag is DELETE rows where rows is the number of rows deleted.
+* For an UPDATE command, the tag is UPDATE rows where rows is the number of rows updated.
+* For a SELECT or CREATE TABLE AS command, the tag is SELECT rows where rows is the number of rows retrieved.
+* For a MOVE command, the tag is MOVE rows where rows is the number of rows the cursor's position has been changed by.
+* For a FETCH command, the tag is FETCH rows where rows is the number of rows that have been retrieved from the cursor.
+
+For an `UPDATE` or `INSERT` command, a `Result` will have a length of `0` and no column information, but will always return a `completedCommand`.
+From Postgresql's perspective, the fact that the query returns without giving an error is evidence that the command completed successfully, and `Roc` will adhere to their style, not the `JDBC` style.
+
+### Row
+A `Row` holds a non-zero number of [Elements](http://finagle.github.io/roc/docs/#roc.postgresql.Element).
+An `Element` is the actual value returned at `[row][column]`.
+For example, if we were to execute the following:
+```scala
+scala> val req = new Request("SELECT COUNT(*) FROM STATES;")
+scala> val result = Await.result(client.query(req))
+result: roc.postgresql.Result = Result(Text('count,20,50))
+```
+we are given a `Result` with one `Column` (with the name of `'count`, a FormatCode of Text, and OID of 20), and one `Row`.
+To retrieve a value out of that `Row`, we do the following:
+```scala
+scala> val head = result.head // let's just get the first row
+scala> val count = head.get('count)
+count: roc.postgresql.Element = Text('count,20,50)
+```
+Wait, what exactly is an `Element`?
+
+### Elements
+`roc-core` has an extremely minimal design philosophy. That includes the decoding of actual data. In other words,
+we'll decode the bytes into the correct format, we'll tell you what that format is, but it's up to you (or another roc module)
+to go any further.
+Postgreql returns data in 3 possible formats:
+1. UTF-8 Text
+2. Binary Format (typically Big Endian)
+3. No data is returned for that column ( mean it is a NULL value )
+
+`roc-core` will decode this data into the given format, but goes no further in the process - it is up to core clients to decide how to procede.
+Going back to the example above, we see:
+```scala
+scala> val count = head.get('count)
+count: roc.postgresql.Element = Text('count,20,50)
+```
+This means that Postgresql has returned a column name `'count`, in a String format, with a Postgresql Type of `Long`.
+String encodings are typically preferred, and almost universally the case unless the column returned is binary data,
+or if a `FETCH` command is used to return a `CURSOR`.
+An `Element` has 3 sub-types
+
+1. Text
+2. Binary
+3. NULL
+
+Yes, we've introduced a specific `NULL` type into the system. No, I wasn't drunk. If a requested value
+has the ability to be `NULL` in the Database, and is in fact NULL, Postgresql doesn't tell you about it.
+It simply gives you no bytes to decode and lets your figure it out.
+To get a value out of an `Element`, you have several options:
+```scala
+scala> val count = head.get('count)
+count: roc.postgresql.Element = Text('count,20,50)
+
+scala> count.asString
+res4: String = 7
+
+scala> count.asBytes
+roc.postgresql.failures$UnsupportedDecodingFailure: Attempted Binary decoding of String column.
+```
+
+If you attempt to get the String of a Binary element, you'll get another `UnsupportedDecodingFailure`.
+The two attempts above are short cuts to getting values. The preferred method involves a fold:
+```scala
+def fold[A](fa: String => A, fb: Array[Byte] => A, fc: () => A): A = this match {
+  case Text(_, _, value)   => fa(value)
+  case Binary(_, _, value) => fb(value)
+  case Null(_, _)          => fc()
+}
+```
+ This allows you to handle `NULL` values in any way you see fit, and makes the decode process typesafe.
+ Both `asString` and `asBytes` call `fold` under the covers.
+
+ Finally, there is the ubiquitous parsing / decoding method `as[A]`:
+ ```scala
+ def as[A](implicit f: ElementDecoder[A]): A = fold(f.textDecoder, f.binaryDecoder, f.nullDecoder)
+ ```
+ An `ElementDecoder` is a TypeClass to allow custom decoding in a more syntax friendly way. See the [Scaladocs]
+ or gitter for more information.
+
+## Design Philosophy
+The desire of `core` is to be as minimal as possible. In practice, that means mapping a Finagle Service over Postgresql with as little bedazzling as possible.
+The Postgresql Client will be very minimalistic ( currently just one method, `def query(Request): Future[Result]`), and the aim is for `Result` to do as little as possible.
+Additional future modules may provide additional functionality.
 
 ## Motivation
-Why create your own when there is an existing implementation? Two reasons
-
-1. The current [finagle-postgres][finagle-postgresql-existing] was developed pre [Finagle 6.x][finagle-changelog] and does not use modern finagle abstractions. These are core enough to require what amounts to a complete rewrite of the driver.
-2. The current project lacks a true owner - Twitter decided to give the Open Source team a [long vacation][twitter-long-vacation] last fall, and since then only a handful of projects are being actively managed.
-
-It is absolutely the goal of this project to become the reference implementation, and hopefully be moved into the [Finagle ecosystem][finagle-ecosystem].
-
+The current [finagle-postgres][finagle-postgresql-existing] was developed pre [Finagle 6.x][finagle-changelog] and does not use modern finagle abstractions. These are core enough to require what amounts to a complete rewrite of the driver.
 
 ## What's in a name?
 roc (*Rokh* or *Rukh*) is named after the Persian mythological bird of prey [Roc][roc-wikipedia],
@@ -90,7 +166,7 @@ roc (*Rokh* or *Rukh*) is named after the Persian mythological bird of prey [Roc
 roc is currently maintained by [Jeffrey Davis][jeff-davis].
 
 The roc project supports the [Typelevel][typelevel] [code of conduct][code-of-conduct] and wants
-all of its channels (GitHub, etc.) to be welcoming environments for everyone.
+all of its channels (GitHub, gitter, etc.) to be welcoming environments for everyone.
 
 ## License
 
@@ -107,7 +183,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 [finagle-ecosystem]: https://github.com/finagle
 [finagle-postgresql-existing]: https://github.com/finagle/finagle-postgres
 [jeff-davis]: https://twitter.com/penland365
+[Maven Central]: http://search.maven.org/
 [postgresql]: http://www.postgresql.org/
 [roc-wikipedia]: https://en.wikipedia.org/wiki/Roc_(mythology)
-[twitter-long-vacation]: https://meta.plasm.us/posts/2015/10/13/goodbye-twitter/
+[scaladocs]:  http://finagle.github.io/roc/docs/
 [typelevel]: http://typelevel.org/
