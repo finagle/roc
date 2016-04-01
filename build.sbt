@@ -52,7 +52,7 @@ lazy val baseSettings = Seq(
 
 lazy val allSettings = buildSettings ++ baseSettings 
 
-lazy val coreVersion = "0.0.1"
+lazy val coreVersion = "0.0.2-SNAPSHOT"
 
 lazy val catsVersion = "0.4.1"
 
@@ -72,6 +72,7 @@ lazy val core =  project
   .settings(version := coreVersion)
   .settings(allSettings:_*)
   .settings(docSettings)
+  .settings(sharedPublishSettings)
   .settings(
     libraryDependencies ++= Seq(
       "org.typelevel"   %%  "cats"          %  catsVersion,
@@ -88,6 +89,7 @@ lazy val tagName = Def.setting{
 lazy val sharedPublishSettings = Seq(
   releaseCrossBuild := true,
   releaseTagName := tagName.value,
+  homepage := Some(url("https://github.com/finagle/roc")),
   licenses := Seq("BSD New" -> url("https://opensource.org/licenses/BSD-3-Clause")),
   releasePublishArtifactsAction := PgpKeys.publishSigned.value,
   publishMavenStyle := true,
