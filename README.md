@@ -7,7 +7,7 @@ roc is a modern [Finagle][finagle] [Postgresql][postgresql] [Client][finagle-cli
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.finagle/roc-core_2.11.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/com.github.finagle/roc-core_2.11)
 [![Codecov branch](https://img.shields.io/codecov/c/github/finagle/roc/master.svg?style=plastic)](https://codecov.io/github/finagle/roc?branch=master)
 [![CircleCI branch](https://img.shields.io/circleci/project/finagle/roc/master.svg?style=plastic)](https://circleci.com/gh/finagle/roc/tree/master)
-[![Gitter](https://img.shields.io/badge/gitter-join%20chat-green.svg)]((https://gitter.im/finagle/roc?)
+[![Gitter](https://img.shields.io/badge/gitter-join%20chat-green.svg?style=plastic)](https://gitter.im/finagle/roc?)
 
 
 ## tl;dr
