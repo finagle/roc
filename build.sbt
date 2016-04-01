@@ -50,11 +50,9 @@ lazy val baseSettings = Seq(
   resolvers += "Twitter Maven repo" at "http://maven.twttr.com/"
 )
 
-//enablePlugins(SiteScaladocPlugin)
-
 lazy val allSettings = buildSettings ++ baseSettings 
 
-lazy val coreVersion = "0.0.1-SNAPSHOT"
+lazy val coreVersion = "0.0.1"
 
 lazy val catsVersion = "0.4.1"
 
