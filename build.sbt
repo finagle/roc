@@ -82,6 +82,17 @@ lazy val core =  project
     )
   )
 
+lazy val benchmark = project
+  .settings(
+    description := "roc-benchmark",
+    moduleName := "roc-benchmark"
+  )
+  .settings(allSettings:_*)
+  .settings(noPublishSettings)
+  .enablePlugins(JmhPlugin)
+  .dependsOn(core)
+
+
 lazy val tagName = Def.setting{
  s"v${if (releaseUseGlobalVersion.value) (version in ThisBuild).value else version.value}"
 }

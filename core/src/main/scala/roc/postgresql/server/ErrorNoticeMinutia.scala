@@ -34,7 +34,7 @@ private[postgresql] object ErrorNoticeMessageFields {
   * @see [[http://www.postgresql.org/docs/current/static/errcodes-appendix.html]] for more
   *     information
   */
-private[server] object ErrorClassCodes {
+private[postgresql] object ErrorClassCodes {
   val SuccessfulCompletion                    = "00"
   val Warning                                 = "01"
   val NoData                                  = "02"
