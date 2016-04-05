@@ -19,7 +19,8 @@ private[postgresql] trait PacketDecoderImplicits {
 
   private[this] type Field = (Char, String)
   private[this] type Fields = List[Field]
-  private[this] def readErrorNoticePacket(p: Packet): Xor[Throwable, Fields] = Xor.catchNonFatal({
+
+  def readErrorNoticePacket(p: Packet): Xor[Throwable, Fields] = Xor.catchNonFatal({
     val br = BufferReader(p.body)
 
     @annotation.tailrec
@@ -123,7 +124,7 @@ private[postgresql] trait PacketDecoderImplicits {
             case x if x >= numFields => fs
           }
 
-        val fs = loop(0, List.empty[RowDescriptionField]).reverse
+        val fs = loop(0, List.empty[RowDescriptionField])
         RowDescription(numFields, fs)
       }).leftMap(t => new PacketDecodingFailure(t.getMessage))
     }
@@ -134,7 +135,7 @@ private[postgresql] trait PacketDecoderImplicits {
         val columns = br.readShort
 
         @annotation.tailrec
-        def loop(idx: Short, cbs: ListBuffer[Option[Array[Byte]]]): List[Option[Array[Byte]]] = 
+        def loop(idx: Short, cbs: List[Option[Array[Byte]]]): List[Option[Array[Byte]]] = 
           idx match {
             case x if x < columns => {
               val columnLength = br.readInt
@@ -145,12 +146,12 @@ private[postgresql] trait PacketDecoderImplicits {
               } else {
                 Some(br.take(columnLength))
               }
-              loop((idx + 1).toShort, cbs += bytes)
+              loop((idx + 1).toShort, bytes :: cbs)
             }
-            case x if x >= columns => cbs.toList
+            case x if x >= columns => cbs
           }
 
-        val columnBytes = loop(0, ListBuffer.empty[Option[Array[Byte]]])
+        val columnBytes = loop(0, List.empty[Option[Array[Byte]]])
         new DataRow(columns, columnBytes)
       }).leftMap(t => new PacketDecodingFailure(t.getMessage))
     }
