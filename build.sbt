@@ -4,8 +4,8 @@ import ScoverageSbtPlugin._
 
 lazy val buildSettings = Seq(
   organization := "com.github.finagle",
-  scalaVersion := "2.11.7",
-  crossScalaVersions := Seq("2.10.6", "2.11.7")
+  scalaVersion := "2.11.8",
+  crossScalaVersions := Seq("2.10.6", "2.11.8")
 )
 
 lazy val compilerOptions = Seq(
@@ -56,7 +56,7 @@ lazy val coreVersion = "0.0.2-SNAPSHOT"
 
 lazy val catsVersion = "0.4.1"
 
-lazy val finagleVersion = "6.33.0"
+lazy val finagleVersion = "6.34.0"
 
 lazy val nettyVersion = "4.1.0.CR2"
 
