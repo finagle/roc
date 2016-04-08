@@ -82,6 +82,19 @@ lazy val core =  project
     )
   )
 
+lazy val types = project
+  .settings(moduleName := "roc-types")
+  .settings(version := coreVersion)
+  .settings(allSettings:_*)
+  .settings(docSettings)
+  .settings(sharedPublishSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.typelevel"   %%  "cats"  %   catsVersion
+    )
+  )
+  .dependsOn(core)
+
 lazy val benchmark = project
   .settings(
     description := "roc-benchmark",

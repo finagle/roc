@@ -6,7 +6,7 @@ import cats.implicits._
 import roc.postgresql.server.PostgresqlMessage
 
 object failures {
-  sealed abstract class Failure extends Exception
+  private[roc] abstract class Failure extends Exception
 
   /** An Error occurring on the Postgresql Server.
     *
