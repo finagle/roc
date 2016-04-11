@@ -6,7 +6,7 @@ import java.nio.ByteOrder
 import java.nio.charset.Charset
 import org.jboss.netty.buffer.{ChannelBuffer, ChannelBuffers}
 
-private[roc] object Buffer {
+object Buffer {
   val NullLength = -1 // denotes a SQL NULL value when reading a length coded binary.
   val EmptyString = new String
 
@@ -30,12 +30,12 @@ private[roc] object Buffer {
 
 }
 
-private[roc] sealed trait Buffer {
+sealed trait Buffer {
   val underlying: ChannelBuffer
   def capacity: Int = underlying.capacity
 }
 
-private[roc] trait BufferReader extends Buffer {
+trait BufferReader extends Buffer {
 
   /** Current reader offset in the buffer. */
   def offset: Int
@@ -140,7 +140,7 @@ private[roc] trait BufferReader extends Buffer {
   def toString(start: Int, length: Int, charset: Charset): String
 }
 
-private[roc] object BufferReader {
+object BufferReader {
 
   def apply(buf: Buffer, offset: Int = 0): BufferReader = {
     require(offset >= 0, "Invalid reader offset")
@@ -192,7 +192,7 @@ private[roc] object BufferReader {
  * that is, all operations increase the offset
  * into the underlying buffer.
  */
-private[roc] trait BufferWriter extends Buffer {
+trait BufferWriter extends Buffer {
 
   /**
    * Current writer offset.

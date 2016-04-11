@@ -37,7 +37,6 @@ class PacketDecoderBenchmarks extends TestData {
   }
 }
 
-
 abstract class TestData {
 
   object Decoders extends PacketDecoderImplicits

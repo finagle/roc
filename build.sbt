@@ -58,7 +58,7 @@ lazy val catsVersion = "0.4.1"
 
 lazy val finagleVersion = "6.34.0"
 
-lazy val nettyVersion = "4.1.0.CR2"
+lazy val nettyVersion = "4.0.36.Final"
 
 lazy val roc = project.in(file("."))
   .settings(moduleName := "root")
