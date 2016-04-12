@@ -64,8 +64,8 @@ lazy val roc = project.in(file("."))
   .settings(moduleName := "root")
   .settings(allSettings)
   .settings(docSettings)
-  .aggregate(core)
-  .dependsOn(core)
+  .aggregate(core, types)
+  .dependsOn(core, types)
 
 lazy val core =  project
   .settings(moduleName := "roc-core")
