@@ -16,7 +16,7 @@ import roc.postgresql.failures.{PostgresqlMessageDecodingFailure, Failure}
   * @see [[http://www.postgresql.org/docs/current/static/protocol-error-fields.html]]
   * @see [[http://www.postgresql.org/docs/current/static/errcodes-appendix.html]]
   */
-sealed abstract class PostgresqlMessage private[server](params: ErrorParams) {
+ sealed abstract class PostgresqlMessage private[server](params: ErrorParams) {
 
   /** The severity of the Error or Notice
     *
@@ -146,6 +146,21 @@ sealed abstract class PostgresqlMessage private[server](params: ErrorParams) {
     * @see [[http://www.postgresql.org/docs/current/static/protocol-error-fields.html]]
     */
   val routine: Option[String] = params.routine
+
+  override def toString: String = {
+    val xs = List(("Detail: ", detail), ("Hint: ", hint), ("Position: ", position), 
+      ("Internal Position: ", internalPosition), ("Internal Query: ", internalQuery),
+      ("Where: ", where), ("Schema Name: ", schemaName), ("Table Name: ", tableName),
+      ("Column Name: ", columnName), ("Data Type Name: ", dataTypeName), ("Constaint Name: ",
+      constraintName), ("File: ", file), ("Line: ", line), ("Routine: ", routine))
+    val optString = xs.filter(_._2 != None)
+      .map(x => (x._1, x._2.getOrElse("")))
+      .foldLeft("")((x,y) => x + y._1 + y._2 + "\n")
+    val requiredString = s"$severity - $message. SQLSTATE: $code."
+
+    requiredString + "\n" + optString
+  }
+
 }
 
 private[postgresql] case class ErrorParams(severity: String, code: String, message: String, 
@@ -276,6 +291,4 @@ final case class WarningMessage private[server](private val params: ErrorParams)
   * @see [[https://github.com/postgres/postgres/blob/master/src/backend/utils/errcodes.txt]]
   */
 final case class ErrorMessage private[server](private val params: ErrorParams)
-  extends PostgresqlMessage(params) {
-  override def toString: String = s"$severity - $message. SQLSTATE: $code."
-}
+  extends PostgresqlMessage(params)

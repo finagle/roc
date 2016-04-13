@@ -38,14 +38,14 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
     should return Xor.Left(ReadyForQueryDecodingFailure) when given an invalid Char ${RFQ().testInvalidChar}
     should return Xor.Left(PacketDecodingFailure) when given an invalid Packet      ${RFQ().testInvalidPacket}
 
+  DataRow
+    should return Xor.Right(DataRow) when given a valid Packet                      ${DR().testValidPacket}
+    should return Xor.Left(PacketDecodingFailure) when given an invalid Packet      ${DR().testInvalidPacket}
+
   RowDescription
     should return Xor.Right(RowDescription) when given a valid Packet               ${RD().testValidPacket}
     should return Xor.Left(PacketDecodingFailure) when given an invalid Packet      ${RD().testInvalidPacket}
     should have valid Message when decoding an unknown Format Code                  ${RD().testUnknownFormatCode}
-
-  DataRow
-    should return Xor.Right(DataRow) when given a valid Packet                      ${DR().testValidPacket}
-    should return Xor.Left(PacketDecodingFailure) when given an invalid Packet      ${DR().testInvalidPacket}
 
   AuthenticationMessages
     should return Xor.Right(AuthenticationMessage) when given a valid Message Int              ${AM().testValid}
@@ -56,6 +56,7 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
     must return Xor.Right(NoticeResponse(PostgresqlMessage)) when given a valid Packet             ${NR().test}
     must return Xor.Left(PostgresqlMessageDecodingFailure) when given an invalid PostgresqlMessage ${NR().testInvalid}
     must return Xor.Left(PacketDecodingFailure) when given an invalid Packet                       ${NR().testInvalidPacket}
+
                                                                                   """
 
   case class ErrorMsg() extends generators.ErrorNoticePacketGen {

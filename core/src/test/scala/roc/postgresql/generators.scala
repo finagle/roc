@@ -7,7 +7,7 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Gen}
 import org.specs2._
-import roc.postgresql.transport.{Buffer, BufferWriter, Packet}
+import roc.postgresql.transport.{Buf, Buffer, BufferWriter, Packet}
 
 object generators {
 
@@ -16,19 +16,25 @@ object generators {
     private[this] type Fields = List[Field]
 
     private lazy val genValidErrorNoticeFieldsBuffer: Gen[(Fields, Buffer)] = for {
-      requiredFields    <-  validRequiredFieldsGen
-      optionalFields    <-  genOptionalFields
+      fields    <-  validFieldsGen
     } yield {
-      val fields = requiredFields ::: optionalFields
-      val xs = fields.filterNot(x => x._2 == "")
-      val length = xs.foldLeft(0)((i,j) => i + 1 + lengthOfCStyleString(j._2)) + 1
-      val bw = BufferWriter(new Array[Byte](length))
-      xs.foreach(f => {
-        bw.writeByte(f._1.toByte)
-        bw.writeNullTerminatedString(f._2)
-      })
-      bw.writeByte(0x0)
-      (xs, Buffer(bw.toBytes))
+      val length = fields.foldLeft(0)((i,j) => {
+        i + // previous accumulation
+        1 + // the one Byte Char describing the field
+        Buf.lengthOfCStyleString(j._2) // the length of the C-Style String
+      }) + 1 // the final null termination byte
+      val buf = Buf(length)
+
+      @annotation.tailrec
+      def loop(xs: Fields): Buffer = xs match {
+        case h :: t => {
+          buf.writeByte(h._1.toByte)
+          buf.writeCStyleString(h._2)
+          loop(t)
+        }
+        case t => buf.writeNull; Buffer(buf.toBytes)
+      }
+      (fields, loop(fields))
     }
 
     private lazy val genInvalidErrorNoticeFieldsBuffer: Gen[(Fields, Buffer)] = for {
