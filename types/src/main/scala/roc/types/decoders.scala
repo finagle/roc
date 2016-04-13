@@ -2,9 +2,9 @@ package roc
 package types
 
 import cats.data.Xor
+import io.netty.buffer.Unpooled
 import roc.postgresql.ElementDecoder
 import roc.types.failures._
-import roc.postgresql.transport.BufferReader
 
 object decoders {
 
@@ -21,6 +21,24 @@ object decoders {
     def nullDecoder(): String                     = throw new NullDecodedFailure("STRING")
   }
 
+  implicit val shortElementDecoder: ElementDecoder[Short] = new ElementDecoder[Short] {
+    def textDecoder(text: String): Short         = Xor.catchNonFatal(
+      text.toShort
+    ).fold(
+      {l => throw new ElementDecodingFailure("SHORT", l)},
+      {r => r}
+    )
+    def binaryDecoder(bytes: Array[Byte]): Short = Xor.catchNonFatal({
+      val buffer = Unpooled.directBuffer(2)
+      buffer.writeBytes(bytes.take(2))
+      buffer.readShort
+    }).fold(
+      {l => throw new ElementDecodingFailure("SHORT", l)},
+      {r => r}
+    )
+    def nullDecoder(): Short                     = throw new NullDecodedFailure("SHORT")
+  }
+
   implicit val intElementDecoder: ElementDecoder[Int] = new ElementDecoder[Int] {
     def textDecoder(text: String): Int         = Xor.catchNonFatal(
       text.toInt
@@ -28,12 +46,68 @@ object decoders {
       {l => throw new ElementDecodingFailure("INT", l)},
       {r => r}
     )
-    def binaryDecoder(bytes: Array[Byte]): Int = Xor.catchNonFatal(
-      BufferReader(bytes.take(4)).readInt
-    ).fold(
+    def binaryDecoder(bytes: Array[Byte]): Int = Xor.catchNonFatal({
+      val buffer = Unpooled.directBuffer(4)
+      buffer.writeBytes(bytes.take(4))
+      buffer.readInt
+    }).fold(
       {l => throw new ElementDecodingFailure("INT", l)},
       {r => r}
     )
     def nullDecoder(): Int =                     throw new NullDecodedFailure("INT")
+  }
+
+  implicit val longElementDecoder: ElementDecoder[Long] = new ElementDecoder[Long] {
+    def textDecoder(text: String): Long         = Xor.catchNonFatal(
+      text.toLong
+    ).fold(
+      {l => throw new ElementDecodingFailure("LONG", l)},
+      {r => r}
+    )
+    def binaryDecoder(bytes: Array[Byte]): Long = Xor.catchNonFatal({
+      val buffer = Unpooled.directBuffer(8)
+      buffer.writeBytes(bytes.take(8))
+      buffer.readLong
+    }).fold(
+      {l => throw new ElementDecodingFailure("LONG", l)},
+      {r => r}
+    )
+    def nullDecoder: Long                       = throw new NullDecodedFailure("LONG") 
+  }
+
+  implicit val floatElementDecoder: ElementDecoder[Float] = new ElementDecoder[Float] {
+    def textDecoder(text: String): Float         = Xor.catchNonFatal(
+      text.toFloat
+    ).fold(
+      {l => throw new ElementDecodingFailure("FLOAT", l)},
+      {r => r}
+    )
+    def binaryDecoder(bytes: Array[Byte]): Float = Xor.catchNonFatal({
+      val buffer = Unpooled.directBuffer(4)
+      buffer.writeBytes(bytes.take(4))
+      buffer.readFloat
+    }).fold(
+      {l => throw new ElementDecodingFailure("FLOAT", l)},
+      {r => r}
+    )
+    def nullDecoder: Float                       = throw new NullDecodedFailure("FLOAT")
+  }
+
+  implicit val doubleElementDecoder: ElementDecoder[Double] = new ElementDecoder[Double] {
+    def textDecoder(text: String): Double         = Xor.catchNonFatal(
+      text.toDouble
+    ).fold(
+      {l => throw new ElementDecodingFailure("DOUBLE", l)},
+      {r => r}
+    )
+    def binaryDecoder(bytes: Array[Byte]): Double = Xor.catchNonFatal({
+      val buffer = Unpooled.directBuffer(8)
+      buffer.writeBytes(bytes.take(8))
+      buffer.readDouble
+    }).fold(
+      {l => throw new ElementDecodingFailure("DOUBLE", l)},
+      {r => r}
+    )
+    def nullDecoder: Double                       = throw new NullDecodedFailure("DOUBLE")
   }
 }
