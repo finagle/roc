@@ -30,7 +30,8 @@ lazy val testDependencies = Seq(
   "org.specs2"      %%  "specs2-core"       %   specs2Version,
   "org.specs2"      %%  "specs2-scalacheck" %   specs2Version,
   "org.specs2"      %%  "specs2-junit"      %   specs2Version,
-  "org.specs2"      %%  "specs2-mock"       %   specs2Version 
+  "org.specs2"      %%  "specs2-mock"       %   specs2Version,
+  "io.netty"        %   "netty-buffer"      %   nettyVersion
 )
 
 scalacOptions in Test ++= Seq("-Yrangepos")
@@ -90,7 +91,8 @@ lazy val types = project
   .settings(sharedPublishSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "org.typelevel"   %%  "cats"  %   catsVersion
+      "io.netty"        %   "netty-buffer"  %  nettyVersion,
+      "org.typelevel"   %%  "cats"          %   catsVersion
     )
   )
   .dependsOn(core)
