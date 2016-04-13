@@ -382,9 +382,20 @@ final class PostgresqlMessageSpec extends Specification with ScalaCheck { def is
   }
 
   case class EM() extends ErrorNoticeGen {
-    val testMessage = forAll(errMsgAndRequiredFieldsGen) { xs: ErrorMessageAndRequiredFields =>
-      val expectedMessage = s"${xs.severity} - ${xs.message}. SQLSTATE: ${xs.code}."
-      xs.error.toString must_== expectedMessage
+    val testMessage = forAll(errMsgAndRequiredFieldsGen) { x: ErrorMessageAndRequiredFields =>
+      val xs = x.errorParams
+      val ys = List(("Detail: ", xs.detail), ("Hint: ", xs.hint), ("Position: ", xs.position), 
+        ("Internal Position: ", xs.internalPosition), ("Internal Query: ", xs.internalQuery),
+        ("Where: ", xs.where), ("Schema Name: ", xs.schemaName), ("Table Name: ", xs.tableName),
+        ("Column Name: ", xs.columnName), ("Data Type Name: ", xs.dataTypeName), ("Constaint Name: ",
+        xs.constraintName), ("File: ", xs.file), ("Line: ", xs.line), ("Routine: ", xs.routine))
+      val optString = ys.filter(_._2 != None)
+        .map(x => (x._1, x._2.getOrElse("")))
+        .foldLeft("")((x,y) => x + y._1 + y._2 + "\n")
+      val requiredString = s"${xs.severity} - ${xs.message}. SQLSTATE: ${xs.code}."
+
+      val expectedMessage = requiredString + "\n" + optString 
+      x.error.toString must_== expectedMessage
     }
   }
 }

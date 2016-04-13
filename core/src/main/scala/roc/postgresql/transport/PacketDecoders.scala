@@ -26,7 +26,6 @@ private[postgresql] trait PacketDecoderImplicits {
     @annotation.tailrec
     def loop(xs: List[Field]): List[Field]= br.readByte match {
       case 0x00 => xs // null
-      case 0x31 => xs // Zero can also be a terminator
       case byte => {
         val field = (byte.toChar, br.readNullTerminatedString())
         loop(field :: xs)
@@ -124,7 +123,7 @@ private[postgresql] trait PacketDecoderImplicits {
             case x if x >= numFields => fs
           }
 
-        val fs = loop(0, List.empty[RowDescriptionField])
+        val fs = loop(0, List.empty[RowDescriptionField]).reverse
         RowDescription(numFields, fs)
       }).leftMap(t => new PacketDecodingFailure(t.getMessage))
     }
@@ -151,7 +150,7 @@ private[postgresql] trait PacketDecoderImplicits {
             case x if x >= columns => cbs
           }
 
-        val columnBytes = loop(0, List.empty[Option[Array[Byte]]])
+        val columnBytes = loop(0, List.empty[Option[Array[Byte]]]).reverse
         new DataRow(columns, columnBytes)
       }).leftMap(t => new PacketDecodingFailure(t.getMessage))
     }

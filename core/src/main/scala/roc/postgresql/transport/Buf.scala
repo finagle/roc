@@ -10,7 +10,7 @@ import java.nio.charset.{Charset, StandardCharsets}
   * @note As of this moment we are using Unpooled Buffers, but this may change in the near
   *     future.
   */
-private[roc] object Buf {
+object Buf {
 
   /** Creates a buf w/ the specified length
     * @length the capacity of the Buffer
@@ -50,7 +50,7 @@ private[roc] object Buf {
   * @args underlying a to utilize. 
   * @note unlike the existing Buffer, this is both read and write compatible
   */
-private[roc] final class Buf private(private[this] val underlying: ByteBuf) {
+final class Buf private(private[this] val underlying: ByteBuf) {
 
   /** Read one byte from the array
     * @returns Byte

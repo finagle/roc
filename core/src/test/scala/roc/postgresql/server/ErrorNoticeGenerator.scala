@@ -16,7 +16,7 @@ import roc.postgresql.server.ErrorNoticeMessageFields._
   * @see [[http://www.postgresql.org/docs/current/static/protocol-error-fields.html]]
   * @see [[http://www.postgresql.org/docs/current/static/errcodes-appendix.html]]
   */
-trait ErrorNoticeGen extends ScalaCheck {
+trait ErrorNoticeGen extends PostgresqlLexicalGen {
 
     lazy val validErrorNoticeTokens: List[Char] = List(Severity, 
       ErrorNoticeMessageFields.Code, Message, Detail, Hint, Position, InternalPosition, 
@@ -62,8 +62,7 @@ trait ErrorNoticeGen extends ScalaCheck {
 
     lazy val genValidSeverityField: Gen[String] = Gen.oneOf("ERROR", "FATAL", "PANIC")
     lazy val genValidSQLSTATECode: Gen[String] = Gen.oneOf(errorClassCodeList)
-    lazy val genNonZeroLengthString: Gen[String] =
-      arbitrary[String] suchThat (_.length > 0)
+    lazy val genNonZeroLengthString: Gen[String] = genValidSQLIdentifier suchThat (_.length > 0)
     lazy val validRequiredFieldsGen: Gen[Fields] = for {
       severity      <-  genValidSeverityField
       sqlStateCode  <-  genValidSQLSTATECode
@@ -94,8 +93,8 @@ trait ErrorNoticeGen extends ScalaCheck {
     lazy val genOptionalFields: Gen[Fields] = for {
       detail              <-  genNonZeroLengthString
       hint                <-  genNonZeroLengthString
-      position            <-  genNonZeroLengthString
-      internalPosition    <-  genNonZeroLengthString
+      position            <-  genPositiveIntString
+      internalPosition    <-  genPositiveIntString
       internalQuery       <-  genNonZeroLengthString
       where               <-  genNonZeroLengthString
       schemaName          <-  genNonZeroLengthString
@@ -104,12 +103,17 @@ trait ErrorNoticeGen extends ScalaCheck {
       dataTypeName        <-  genNonZeroLengthString
       constraintName      <-  genNonZeroLengthString
       file                <-  genNonZeroLengthString
-      line                <-  genNonZeroLengthString
+      line                <-  genPositiveIntString
       routine             <-  genNonZeroLengthString
     } yield List((Detail, detail), (Hint, hint), (Position, position), (InternalPosition, 
         internalPosition), (InternalQuery, internalQuery), (Where, where), (SchemaName, schemaName),
         (TableName, tableName), (ColumnName, columnName), (DataTypeName, dataTypeName), 
         (ConstraintName, constraintName), (File, file), (Line, line), (Routine, routine))
+
+    lazy val genPositiveIntString: Gen[String] = for {
+      line  <-  Gen.choose(1, 10000)
+    } yield line.toString
+
     lazy val validFieldsGen: Gen[Fields] = for {
       required  <- validRequiredFieldsGen
       optional  <- genOptionalFields
@@ -201,6 +205,16 @@ trait ErrorNoticeGen extends ScalaCheck {
         tableName = tableName, columnName = columnName, dataTypeName = dataTypeName, 
         constraintName = constraintName, file = file, line = line, routine = routine)
     }
+
+    protected def buildFieldsFromErrorParams(x: ErrorParams): Fields = {
+      val xs = List((Severity, Some(x.severity)), (ErrorNoticeMessageFields.Code, Some(x.code)),
+        (Message, Some(x.message)), (Detail, x.detail), (Hint, x.hint), (Position, x.position), 
+        (InternalPosition, x.internalPosition), (InternalQuery, x.internalQuery), (Where, x.where),
+        (SchemaName, x.schemaName), (TableName, x.tableName), (ColumnName, x.columnName),
+        (DataTypeName, x.dataTypeName), (ConstraintName, x.constraintName), (File, x.file),
+        (Line, x.line), (Routine, x.routine))
+      xs.filter(_._2 != None).map(x => (x._1, x._2.getOrElse("")))
+    }
     
     import ErrorClassCodes._
     protected val errorClassCodeList = List(SuccessfulCompletion, Warning, NoData, 
@@ -265,19 +279,15 @@ trait ErrorNoticeGen extends ScalaCheck {
     }
 
     lazy val errMsgAndRequiredFieldsGen: Gen[ErrorMessageAndRequiredFields] = for {
-      severity      <-  genValidSeverityField
-      message       <-  arbitrary[String]
-      optional      <-  genOptionalFields
-      errorCode     <-  genValidErrorCode
+      errorParams   <-  errorParamsGen
     } yield {
-      val fields = buildFields(severity, errorCode, message, optional)
+      val fields = buildFieldsFromErrorParams(errorParams)
       val error = PostgresqlMessage(fields).getOrElse(throw new Exception("Should never get here."))
-      new ErrorMessageAndRequiredFields(severity, message, errorCode, error)
+      new ErrorMessageAndRequiredFields(errorParams, error)
     }
     case class ExtractValueByCodeContainer(code: Char, xs: Fields)
 
     case class FieldsAndErrorParams(fields: Fields, errorParams: ErrorParams)
 
-    case class ErrorMessageAndRequiredFields(severity: String, message: String, code: String,
-      error: PostgresqlMessage)
+    case class ErrorMessageAndRequiredFields(errorParams: ErrorParams, error: PostgresqlMessage)
 }

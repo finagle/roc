@@ -36,7 +36,10 @@ trait PostgresqlLexicalGen extends ScalaCheck {
   protected lazy val genValidSQLIdentifier: Gen[String] = for {
     firstChar   <-  genValidBeginningIdentifier
     chars       <-  Gen.listOf(genValidSubsequentIdentifier)
-  } yield (firstChar :: chars).foldLeft("")(_ + _)
+  } yield {
+    val xs = firstChar :: chars
+    xs.map(_.toString).reduce(_ + _)
+  }
 
   protected lazy val genValidNumberOfShortColumns: Gen[Short] = 
     Gen.chooseNum[Short](0, 1663) // the maximum number of Postgresql columns is 1663
