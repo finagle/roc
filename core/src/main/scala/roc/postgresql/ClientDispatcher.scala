@@ -93,7 +93,8 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
         case Xor.Right(DataRow(a,b))        => go(xs, DataRow(a,b) :: ys, ccStr)
         case Xor.Right(EmptyQueryResponse)  => go(xs, ys, "EmptyQueryResponse")
         case Xor.Right(CommandComplete(x))  => go(xs, ys, x)
-        case Xor.Right(ErrorResponse(e))    => go(xs, ys, ccStr)
+        case Xor.Right(ErrorResponse(e))    => 
+          Future.exception(new PostgresqlServerFailure(e))
         case Xor.Right(NoticeResponse(_))   => go(xs, ys, ccStr) // throw Notice Responses away
         case Xor.Right(Idle)                => Future.value((xs, ys, ccStr))
         case Xor.Right(u) =>

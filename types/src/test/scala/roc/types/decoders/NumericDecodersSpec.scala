@@ -1,7 +1,6 @@
 package roc
 package types
 
-
 import io.netty.buffer.Unpooled
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop.forAll
