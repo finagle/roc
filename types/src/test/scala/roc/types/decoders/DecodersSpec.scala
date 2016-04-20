@@ -1,9 +1,12 @@
 package roc
 package types
 
+import io.netty.buffer.Unpooled
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop.forAll
+import org.scalacheck.{Arbitrary, Gen}
 import org.specs2._
-import roc.types.failures._
+import roc.types.failures.{ElementDecodingFailure, NullDecodedFailure}
 import roc.types.{decoders => Decoders}
 
 final class DecodersSpec extends Specification with ScalaCheck { def is = s2"""
@@ -13,12 +16,12 @@ final class DecodersSpec extends Specification with ScalaCheck { def is = s2"""
     must return the correct String when Binary Decoding a valid String Byte Array  ${StringDecoder().testBinaryDecoding}
     must throw a NullDecodedFailure when Null Decoding a String                    ${StringDecoder().testNullDecoding}
 
-  IntDecoder
-    must return the correct Int when Text Decoding a valid Int String                   ${IntDecoder().testValidTextDecoding}
-    must throw a ElementDecodingFailure when Text Decoding an Invalid Int String        ${IntDecoder().testInvalidTextDecoding}
-    must return the correct Int when Binary Decoding a valid Int Byte Array             ${IntDecoder().testValidByteDecoding}
-    must throw a ElementDecodingFailure when Binary Decoding an invalid Int Byte Array  ${IntDecoder().testInvalidByteDecoding}
-    must throw a NullDecodedFailure when Null Decoding an Int                           ${IntDecoder().testNullDecoding}
+  BooleanDecoder
+    must return the correct Boolean when Text Decoding a valid Boolean String               ${BooleanDecoder().testValidTextDecoding}
+    must throw a ElementDecodingFailure when Text Decoding an Invalid Boolean String        ${BooleanDecoder().testInvalidTextDecoding}
+    must return the correct Boolean when Binary Decoding a valid Boolean Byte Array         ${BooleanDecoder().testValidByteDecoding}
+    must throw a ElementDecodingFailure when Binary Decoding an invalid Boolean Byte Array  ${BooleanDecoder().testInvalidByteDecoding}
+    must throw a NullDecodedFailure when Null Decoding an Boolean                           ${BooleanDecoder().testNullDecoding}
 
   OptionDecoder
     must return Some(A) when Text Decoding a valid A                       ${OptionDecoder().testValidTextDecoding}
@@ -42,34 +45,67 @@ final class DecodersSpec extends Specification with ScalaCheck { def is = s2"""
     }
   }
 
-  case class IntDecoder() extends generators.IntDecoderGen {
-    val testValidTextDecoding = forAll(genValidInt) { x: IntContainer =>
-      Decoders.intElementDecoder.textDecoder(x.strValue) must_== x.int
+  case class BooleanDecoder() extends ScalaCheck {
+    val testValidTextDecoding = forAll { x: BooleanStringContainer =>
+      Decoders.booleanElementDecoder.textDecoder(x.boolString) must_== x.bool
     }
     val testInvalidTextDecoding = forAll { s: String =>
-      Decoders.intElementDecoder.textDecoder(s) must throwA[ElementDecodingFailure]
+      Decoders.booleanElementDecoder.textDecoder(s) must throwA[ElementDecodingFailure]
     }
-    val testValidByteDecoding = forAll(genValidIntBytes) { x: IntBytesContainer =>
-      Decoders.intElementDecoder.binaryDecoder(x.bytes) must_== x.int
+    val testValidByteDecoding = forAll { x: BooleanBytesContainer =>
+      Decoders.booleanElementDecoder.binaryDecoder(x.bytes) must_== x.bool
     }
-    val testInvalidByteDecoding = forAll(genInvalidIntBytes) { xs: Array[Byte] =>
-      Decoders.intElementDecoder.binaryDecoder(xs) must throwA[ElementDecodingFailure]
+    val testInvalidByteDecoding = forAll(genInvalidBooleanBytes) { xs: Array[Byte] =>
+      Decoders.booleanElementDecoder.binaryDecoder(xs) must throwA[ElementDecodingFailure]
     }
     val testNullDecoding = {
-      Decoders.intElementDecoder.nullDecoder must throwA[NullDecodedFailure]
+      Decoders.booleanElementDecoder.nullDecoder must throwA[NullDecodedFailure]
     }
+
+    /** testValidTextDecoding */
+    protected case class BooleanStringContainer(bool: Boolean, boolString: String)
+    protected lazy val genBooleanStringContainer: Gen[BooleanStringContainer] = for {
+      bool <- arbitrary[Boolean] 
+    } yield {
+      val boolString = bool match {
+        case true  => "t"
+        case false => "f"
+      }
+      new BooleanStringContainer(bool, boolString)
+    }
+    protected implicit lazy val arbitraryBooleanStringContainer: Arbitrary[BooleanStringContainer] =
+      Arbitrary(genBooleanStringContainer)
+
+    /** testValidBinaryDecoding */
+    case class BooleanBytesContainer(bool: Boolean, bytes: Array[Byte])
+    protected lazy val genValidBooleanBytesContainer: Gen[BooleanBytesContainer] = for {
+      bool <- arbitrary[Boolean]
+    } yield {
+      val byte: Byte = bool match {
+        case true  => 0x01
+        case false => 0x00
+      }
+      new BooleanBytesContainer(bool, Array(byte))
+    }
+    protected implicit lazy val arbitraryBooleanBytesContainer: Arbitrary[BooleanBytesContainer] = 
+      Arbitrary(genValidBooleanBytesContainer)
+
+    /** testInvalidByteDecoding */
+    protected lazy val genInvalidBooleanBytes: Gen[Array[Byte]] = for {
+      byte <- arbitrary[Byte] suchThat(x => x != 0x00 && x != 0x01)
+    } yield Array(byte)
   }
 
-  case class OptionDecoder() extends generators.OptionDecoderGen {
-    import roc.types.decoders._ 
+  case class OptionDecoder() extends ScalaCheck { 
+    import roc.types.decoders._
 
-    val testValidTextDecoding = forAll(genValidInt) { x: IntContainer =>
-      Decoders.optionElementDecoder[Int].textDecoder(x.strValue) must_== Some(x.int)
+    val testValidTextDecoding = forAll { x: IntStringContainer =>
+      Decoders.optionElementDecoder[Int].textDecoder(x.intString) must_== Some(x.int)
     }
     val testInvalidTextDecoding = forAll { s: String =>
       Decoders.optionElementDecoder[Int].textDecoder(s) must throwA[ElementDecodingFailure]
     }
-    val testValidBinaryDecoding = forAll(genValidIntBytes) { x: IntBytesContainer =>
+    val testValidBinaryDecoding = forAll { x: IntBytesContainer =>
       Decoders.optionElementDecoder[Int].binaryDecoder(x.bytes) must_== Some(x.int)
     }
     val testInvalidBinaryDecoding = forAll(genInvalidIntBytes) { xs: Array[Byte] =>
@@ -78,5 +114,30 @@ final class DecodersSpec extends Specification with ScalaCheck { def is = s2"""
     val testNullDecoding = forAll { i: Int =>
       Decoders.optionElementDecoder[Int].nullDecoder() must_== None
     }
+
+    case class IntStringContainer(int: Int, intString: String)
+    protected lazy val genIntStringContainer: Gen[IntStringContainer] = for {
+      int   <-  arbitrary[Int]
+    } yield new IntStringContainer(int, int.toString)
+    protected implicit lazy val arbitraryIntStringContainer: Arbitrary[IntStringContainer] =
+      Arbitrary(genIntStringContainer)
+
+    case class IntBytesContainer(int: Int, bytes: Array[Byte])
+    protected lazy val genValidIntBytesContainer: Gen[IntBytesContainer] = for {
+      int   <-  arbitrary[Int]
+    } yield {
+      val buffer = Unpooled.directBuffer(4)
+      buffer.writeInt(int)
+      val xs = Array.fill[Byte](4)(0x00)
+      buffer.readBytes(xs)
+      new IntBytesContainer(int, xs)
+    }
+    protected implicit lazy val arbitraryIntBytesContainer: Arbitrary[IntBytesContainer] = 
+      Arbitrary(genValidIntBytesContainer)
+
+    protected lazy val genInvalidIntBytes: Gen[Array[Byte]] = for {
+      length    <-  Gen.oneOf(0,1,2,3)
+      byte      <-  arbitrary[Byte]
+    } yield Array.fill(length)(byte)
   }
 }

@@ -110,4 +110,22 @@ object decoders {
     )
     def nullDecoder: Double                       = throw new NullDecodedFailure("DOUBLE")
   }
+
+  implicit val booleanElementDecoder: ElementDecoder[Boolean] = new ElementDecoder[Boolean] {
+    def textDecoder(text: String): Boolean         = Xor.catchNonFatal(text.head match {
+      case 't' => true
+      case 'f' => false
+    }).fold(
+     {l => throw new ElementDecodingFailure("BOOLEAN", l)},
+     {r => r}
+    )
+    def binaryDecoder(bytes: Array[Byte]): Boolean = Xor.catchNonFatal(bytes.head match {
+      case 0x00 => false
+      case 0x01 => true
+    }).fold(
+      {l => throw new ElementDecodingFailure("BOOLEAN", l)},
+      {r => r}
+    )
+    def nullDecoder: Boolean                       = throw new NullDecodedFailure("BOOLEAN")
+  }
 }
