@@ -31,6 +31,8 @@ lazy val testDependencies = Seq(
   "org.specs2"      %%  "specs2-scalacheck" %   specs2Version,
   "org.specs2"      %%  "specs2-junit"      %   specs2Version,
   "org.specs2"      %%  "specs2-mock"       %   specs2Version,
+  "io.circe"        %%  "circe-core"        %   "0.4.1",
+  "io.circe"        %%  "circe-generic"     %   "0.4.1",
   "io.netty"        %   "netty-buffer"      %   nettyVersion
 )
 
@@ -92,6 +94,7 @@ lazy val types = project
   .settings(
     libraryDependencies ++= Seq(
       "io.netty"        %   "netty-buffer"  %  nettyVersion,
+      "org.spire-math"  %%  "jawn-ast"      %  "0.8.4",
       "org.typelevel"   %%  "cats"          %   catsVersion
     )
   )
