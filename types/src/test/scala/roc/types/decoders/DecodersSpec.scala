@@ -30,6 +30,12 @@ final class DecodersSpec extends Specification with ScalaCheck { def is = s2"""
     must throw a ElementDecodingFailure when Binary Decoding an invalid A  ${OptionDecoder().testInvalidBinaryDecoding}
     must return None when Null Decoding a valid A                          ${OptionDecoder().testNullDecoding}
 
+  CharDecoder
+    must return the correct Char when Text Decoding a valid String                   ${CharDecoder().testValidTextDecoding}
+    must throw a ElementDecodingFailure when Text Decoding an invalid String         ${CharDecoder().testInvalidTextDecoding}
+    must return the correct Char when Binary Decoding a valid Array[Byte]            ${CharDecoder().testValidBinaryDecoding}
+    must throw a ElementDecodingFailure when Binary Decoding an invalid Array[Byte]  ${CharDecoder().testInvalidBinaryDecoding}
+    must throw a NullDecodedFailure when Null Decoding a Char                        ${CharDecoder().testNullDecoding}
                                                                             """
 
   case class StringDecoder() extends ScalaCheck {
@@ -140,4 +146,40 @@ final class DecodersSpec extends Specification with ScalaCheck { def is = s2"""
       byte      <-  arbitrary[Byte]
     } yield Array.fill(length)(byte)
   }
+
+  case class CharDecoder() extends ScalaCheck {
+
+    val testValidTextDecoding = forAll { x: CharStringContainer =>
+      Decoders.charElementDecoder.textDecoder(x.charString) must_== x.char
+    }
+    val testInvalidTextDecoding = {
+      val text = ""
+      Decoders.charElementDecoder.textDecoder(text) must throwA[ElementDecodingFailure]
+    }
+    val testValidBinaryDecoding = forAll { x: CharBytesContainer =>
+      Decoders.charElementDecoder.binaryDecoder(x.bytes) must_== x.char
+    }
+    val testInvalidBinaryDecoding = forAll(genInvalidCharBytes) { xs: Array[Byte] =>
+      Decoders.charElementDecoder.binaryDecoder(xs) must throwA[ElementDecodingFailure]
+    }
+    val testNullDecoding = {
+      Decoders.charElementDecoder.nullDecoder must throwA[NullDecodedFailure]
+    }
+
+    case class CharStringContainer(char: Char, charString: String)
+    protected lazy val genCharStringContainer: Gen[CharStringContainer] = for {
+      char <- arbitrary[Char]
+    } yield new CharStringContainer(char, char.toString)
+    protected implicit lazy val arbitraryCharStringContainer: Arbitrary[CharStringContainer] = 
+      Arbitrary(genCharStringContainer)
+
+    case class CharBytesContainer(char: Char, bytes: Array[Byte])
+    protected lazy val genValidCharBytesContainer: Gen[CharBytesContainer] = for {
+      byte <- arbitrary[Byte]
+    } yield new CharBytesContainer(byte.toChar, Array(byte))
+    protected implicit lazy val arbitraryValidCharBytesContainer: Arbitrary[CharBytesContainer] =
+      Arbitrary(genValidCharBytesContainer)
+
+    protected lazy val genInvalidCharBytes: Gen[Array[Byte]] = Array.empty[Byte]
+   }
 }

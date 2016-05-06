@@ -128,4 +128,16 @@ object decoders {
     )
     def nullDecoder: Boolean                       = throw new NullDecodedFailure("BOOLEAN")
   }
+
+  implicit val charElementDecoder: ElementDecoder[Char] = new ElementDecoder[Char] {
+    def textDecoder(text: String): Char         = Xor.catchNonFatal(text.head.toChar).fold(
+      {l => throw new ElementDecodingFailure("CHAR", l)},
+      {r => r}
+    )
+    def binaryDecoder(bytes: Array[Byte]): Char = Xor.catchNonFatal(bytes.head.toChar).fold(
+      {l => throw new ElementDecodingFailure("CHAR", l)},
+      {r => r}
+    )
+    def nullDecoder: Char                       = throw new NullDecodedFailure("CHAR")
+  }
 }
