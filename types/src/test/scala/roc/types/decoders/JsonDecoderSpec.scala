@@ -14,7 +14,7 @@ import roc.types.{decoders => Decoders}
 
 final class JsonDecoderSpec extends Specification with ScalaCheck { def is = s2"""
 
-  JsonDecoder
+  Json Decoder
     must correctly decode Text representation                              $testValidText
     must throw a ElementDecodingFailure when Text decoding invalid Json    $testInvalidText
     must correctly decode Binary representation                            $testValidBinary
