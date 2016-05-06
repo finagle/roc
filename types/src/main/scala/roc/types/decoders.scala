@@ -1,8 +1,10 @@
 package roc
 package types
 
-import cats.data.Xor
+import jawn.ast.JParser
+import cats.data.{Validated, Xor}
 import io.netty.buffer.Unpooled
+import java.nio.ByteBuffer
 import roc.postgresql.ElementDecoder
 import roc.types.failures._
 
@@ -140,4 +142,22 @@ object decoders {
     )
     def nullDecoder: Char                       = throw new NullDecodedFailure("CHAR")
   }
+
+  implicit val jsonElementDecoder: ElementDecoder[Json] = new ElementDecoder[Json] {
+    def textDecoder(text: String): Json         = Validated.fromTry(
+      JParser.parseFromString(text)
+    ).fold(
+      {l => throw new ElementDecodingFailure("JSON", l)},
+      {r => r }
+    )
+    def binaryDecoder(bytes: Array[Byte]): Json = Validated.fromTry({
+      val buffer = ByteBuffer.wrap(bytes)
+      JParser.parseFromByteBuffer(buffer)
+    }).fold(
+     {l => throw new ElementDecodingFailure("JSON", l)},
+     {r => r}
+    )
+    def nullDecoder: Json                       = throw new NullDecodedFailure("JSON")
+  }
+
 }
