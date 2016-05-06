@@ -31,7 +31,7 @@ object decoders {
       {r => r}
     )
     def binaryDecoder(bytes: Array[Byte]): Short = Xor.catchNonFatal({
-      val buffer = Unpooled.directBuffer(2)
+      val buffer = Unpooled.buffer(2)
       buffer.writeBytes(bytes.take(2))
       buffer.readShort
     }).fold(
@@ -49,7 +49,7 @@ object decoders {
       {r => r}
     )
     def binaryDecoder(bytes: Array[Byte]): Int = Xor.catchNonFatal({
-      val buffer = Unpooled.directBuffer(4)
+      val buffer = Unpooled.buffer(4)
       buffer.writeBytes(bytes.take(4))
       buffer.readInt
     }).fold(
@@ -67,7 +67,7 @@ object decoders {
       {r => r}
     )
     def binaryDecoder(bytes: Array[Byte]): Long = Xor.catchNonFatal({
-      val buffer = Unpooled.directBuffer(8)
+      val buffer = Unpooled.buffer(8)
       buffer.writeBytes(bytes.take(8))
       buffer.readLong
     }).fold(
@@ -85,7 +85,7 @@ object decoders {
       {r => r}
     )
     def binaryDecoder(bytes: Array[Byte]): Float = Xor.catchNonFatal({
-      val buffer = Unpooled.directBuffer(4)
+      val buffer = Unpooled.buffer(4)
       buffer.writeBytes(bytes.take(4))
       buffer.readFloat
     }).fold(
@@ -103,7 +103,7 @@ object decoders {
       {r => r}
     )
     def binaryDecoder(bytes: Array[Byte]): Double = Xor.catchNonFatal({
-      val buffer = Unpooled.directBuffer(8)
+      val buffer = Unpooled.buffer(8)
       buffer.writeBytes(bytes.take(8))
       buffer.readDouble
     }).fold(
