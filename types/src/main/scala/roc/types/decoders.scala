@@ -1,10 +1,14 @@
 package roc
 package types
 
-import jawn.ast.JParser
 import cats.data.{Validated, Xor}
 import io.netty.buffer.Unpooled
 import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
+import java.time.temporal.ChronoField
+import java.time.{LocalDate, LocalTime, ZonedDateTime}
+import jawn.ast.JParser
 import roc.postgresql.ElementDecoder
 import roc.types.failures._
 
@@ -160,4 +164,56 @@ object decoders {
     def nullDecoder: Json                       = throw new NullDecodedFailure("JSON")
   }
 
+  implicit val dateElementDecoders: ElementDecoder[Date] = new ElementDecoder[Date] {
+    def textDecoder(text: String): Date         = Xor.catchNonFatal(LocalDate.parse(text)).fold(
+      {l => throw new ElementDecodingFailure("DATE", l)},
+      {r => r}
+    )
+    def binaryDecoder(bytes: Array[Byte]): Date = Xor.catchNonFatal({
+      val text = new String(bytes, StandardCharsets.UTF_8)
+      LocalDate.parse(text)
+    }).fold(
+      {l => throw new ElementDecodingFailure("DATE", l)},
+      {r => r}
+    )
+    def nullDecoder: Date                       = throw new NullDecodedFailure("DATE")
+  }
+
+  implicit val localTimeElementDecoders: ElementDecoder[Time] = new ElementDecoder[Time] {
+    def textDecoder(text: String): Time         = Xor.catchNonFatal(LocalTime.parse(text)).fold(
+      {l => throw new ElementDecodingFailure("TIME", l)},
+      {r => r}
+    )
+    def binaryDecoder(bytes: Array[Byte]): Time = Xor.catchNonFatal({
+      val text = new String(bytes, StandardCharsets.UTF_8)
+      LocalTime.parse(text)
+    }).fold(
+      {l => throw new ElementDecodingFailure("TIME", l)},
+      {r => r}
+    )
+    def nullDecoder: Time                       = throw new NullDecodedFailure("TIME")
+  }
+
+  implicit val zonedDateTimeElementDecoders: ElementDecoder[TimestampWithTZ] = 
+    new ElementDecoder[TimestampWithTZ] {
+      private val zonedDateTimeFmt = new DateTimeFormatterBuilder()
+        .appendPattern("yyyy-MM-dd HH:mm:ss")
+        .appendFraction(ChronoField.MICRO_OF_SECOND, 0, 6, true)
+        .appendOptional(DateTimeFormatter.ofPattern("X"))
+        .toFormatter()
+      def textDecoder(text: String): TimestampWithTZ = Xor.catchNonFatal({
+        ZonedDateTime.parse(text, zonedDateTimeFmt)
+      }).fold(
+        {l => throw new ElementDecodingFailure("TIMESTAMP WITH TIME ZONE", l)},
+        {r => r}
+      )
+      def binaryDecoder(bytes: Array[Byte]): TimestampWithTZ = Xor.catchNonFatal({
+        val text = new String(bytes, StandardCharsets.UTF_8)
+        ZonedDateTime.parse(text, zonedDateTimeFmt)
+      }).fold(
+        {l => throw new ElementDecodingFailure("TIMESTAMP WITH TIME ZONE", l)},
+        {r => r}
+      )
+      def nullDecoder: TimestampWithTZ = throw new NullDecodedFailure("TIMSTAMP WITH TIME ZONE")
+    }
 }
