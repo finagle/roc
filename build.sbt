@@ -59,7 +59,7 @@ lazy val coreVersion = "0.0.2"
 
 lazy val catsVersion = "0.4.1"
 
-lazy val finagleVersion = "6.34.0"
+lazy val finagleVersion = "6.35.0"
 
 lazy val nettyVersion = "4.0.36.Final"
 
