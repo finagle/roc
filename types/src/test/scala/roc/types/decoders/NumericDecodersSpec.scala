@@ -5,7 +5,7 @@ import io.netty.buffer.Unpooled
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Gen}
-import org.specs2._
+import org.specs2.{ScalaCheck, Specification}
 import roc.types.failures.{ElementDecodingFailure, NullDecodedFailure}
 import roc.types.{decoders => Decoders}
 
@@ -80,7 +80,7 @@ final class NumericDecodersSpec extends Specification with ScalaCheck { def is =
     protected lazy val genValidShortBytesContainer: Gen[ShortBytesContainer] = for {
       short <-  arbitrary[Short]
     } yield {
-      val buffer = Unpooled.directBuffer(2)
+      val buffer = Unpooled.buffer(2)
       buffer.writeShort(short)
       val xs = Array.fill[Byte](2)(0x00)
       buffer.readBytes(xs)
@@ -129,7 +129,7 @@ final class NumericDecodersSpec extends Specification with ScalaCheck { def is =
     protected lazy val genValidIntBytesContainer: Gen[IntBytesContainer] = for {
       int   <-  arbitrary[Int]
     } yield {
-      val buffer = Unpooled.directBuffer(4)
+      val buffer = Unpooled.buffer(4)
       buffer.writeInt(int)
       val xs = Array.fill[Byte](4)(0x00)
       buffer.readBytes(xs)
@@ -177,7 +177,7 @@ final class NumericDecodersSpec extends Specification with ScalaCheck { def is =
     protected lazy val genLongBytesContainer: Gen[LongBytesContainer] = for {
       long  <-  arbitrary[Long]
     } yield {
-      val buffer = Unpooled.directBuffer(8)
+      val buffer = Unpooled.buffer(8)
       buffer.writeLong(long)
       val xs = Array.fill[Byte](8)(0x00)
       buffer.readBytes(xs)
@@ -225,7 +225,7 @@ final class NumericDecodersSpec extends Specification with ScalaCheck { def is =
     protected lazy val genFloatBytesContainer: Gen[FloatBytesContainer] = for {
       float <-  arbitrary[Float]
     } yield {
-      val buffer = Unpooled.directBuffer(4)
+      val buffer = Unpooled.buffer(4)
       buffer.writeFloat(float)
       val xs = Array.fill[Byte](4)(0x00)
       buffer.readBytes(xs)
@@ -273,7 +273,7 @@ final class NumericDecodersSpec extends Specification with ScalaCheck { def is =
     protected lazy val genDoubleBytesContainer: Gen[DoubleBytesContainer] = for {
       double    <-  arbitrary[Double]
     } yield {
-      val buffer = Unpooled.directBuffer(8)
+      val buffer = Unpooled.buffer(8)
       buffer.writeDouble(double)
       val xs = Array.fill[Byte](8)(0x00)
       buffer.readBytes(xs)
