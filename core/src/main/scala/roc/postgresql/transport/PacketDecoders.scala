@@ -120,10 +120,10 @@ private[postgresql] trait PacketDecoderImplicits {
                 dataTypeSize, typeModifier, formatCode)
               loop((currCount + 1).toShort, rdf :: fs)
             }
-            case x if x >= numFields => fs
+            case x if x >= numFields => fs.reverse
           }
 
-        val fs = loop(0, List.empty[RowDescriptionField]).reverse
+        val fs = loop(0, List.empty[RowDescriptionField])
         RowDescription(numFields, fs)
       }).leftMap(t => new PacketDecodingFailure(t.getMessage))
     }
@@ -147,10 +147,10 @@ private[postgresql] trait PacketDecoderImplicits {
               }
               loop((idx + 1).toShort, bytes :: cbs)
             }
-            case x if x >= columns => cbs
+            case x if x >= columns => cbs.reverse
           }
 
-        val columnBytes = loop(0, List.empty[Option[Array[Byte]]]).reverse
+        val columnBytes = loop(0, List.empty[Option[Array[Byte]]])
         new DataRow(columns, columnBytes)
       }).leftMap(t => new PacketDecodingFailure(t.getMessage))
     }

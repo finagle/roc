@@ -6,7 +6,7 @@ import org.scalacheck.Arbitrary._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Gen}
-import org.specs2._
+import org.specs2.ScalaCheck
 import roc.postgresql.transport.{Buf, Buffer, BufferWriter, Packet}
 
 object generators {
@@ -258,54 +258,51 @@ object generators {
   }
 
   trait DataRowGen extends PostgresqlLexicalGen {
-    protected lazy val genColumnBytes: Gen[Option[Array[Byte]]] = arbitrary[Option[Array[Byte]]]
-    protected lazy val genDataRowContainer: Gen[DataRowContainer] = for {
-      columns   <-  genValidNumberOfShortColumns
-      bytes     <-  Gen.listOfN(columns, genColumnBytes)
-    } yield {
-      val calcBytesLength = (column: Option[Array[Byte]]) => column match {
-        case None     => 0
-        case Some(ab) => ab.length 
-      }
-      val addLengthOfColumn: (Int) => Int = (bytesLength: Int) => bytesLength + 4
-      val calcLengthOfColumn: (Option[Array[Byte]]) => Int =
-        calcBytesLength andThen addLengthOfColumn
-
-      @annotation.tailrec
-      def lengthOfColumns(as: List[Option[Array[Byte]]], length: Int): Int = as match {
-        case h :: t => lengthOfColumns(t, length + calcLengthOfColumn(h))
-        case t      => length
-      }
-
-      val totalLength = lengthOfColumns(bytes, 0) + 2 // 2 Byte short for number of columns
-      val bw = BufferWriter(new Array[Byte](totalLength + 1))
-      bw.writeShort(columns)
-
-      @annotation.tailrec
-      def writeColumns(xs: List[Option[Array[Byte]]]): Unit = xs match {
-        case h :: t => {
-          h match {
-            case Some(b) => {
-              bw.writeInt(b.length)
-              bw.writeBytes(b)
-            }
-            case None    => bw.writeInt(-1)
+    case class DataRowContainer(packet: Packet, dataRow: DataRow)
+    protected implicit lazy val arbitraryDataRowContainer: Arbitrary[DataRowContainer] = 
+      Arbitrary (
+        for {
+          columns   <-  genValidNumberOfShortColumns
+          bytes     <-  Gen.listOfN(columns, arbitrary[Option[Array[Byte]]])
+        } yield {
+          val calcBytesLength = (column: Option[Array[Byte]]) => column match {
+            case None     => 0
+            case Some(ab) => ab.length 
           }
-          writeColumns(t)
+          val addLengthOfColumn: (Int) => Int = (bytesLength: Int) => bytesLength + 4
+          val calcLengthOfColumn: (Option[Array[Byte]]) => Int =
+            calcBytesLength andThen addLengthOfColumn
+
+          @annotation.tailrec
+          def lengthOfColumns(as: List[Option[Array[Byte]]], length: Int): Int = as match {
+            case h :: t => lengthOfColumns(t, length + calcLengthOfColumn(h))
+            case t      => length
+          }
+
+          val totalLength = lengthOfColumns(bytes, 0) + 2 // 2 Byte short for number of columns
+          val bw = Buf(totalLength + 1)
+          bw.writeShort(columns)
+
+          @annotation.tailrec
+          def writeColumns(xs: List[Option[Array[Byte]]]): Unit = xs match {
+            case h :: t => {
+              h match {
+                case Some(b) => {
+                  bw.writeInt(b.length)
+                  bw.writeBytes(b)
+                }
+                case None    => bw.writeInt(-1)
+              }
+              writeColumns(t)
+            }
+            case t => 
+          }
+
+          val _ = writeColumns(bytes)
+          val packet = Packet(Some(Message.DataRowByte), Buffer(bw.toBytes))
+          new DataRowContainer(packet, new DataRow(columns, bytes))
         }
-        case t => 
-      }
-
-      val _ = writeColumns(bytes)
-      val packet = Packet(Some(Message.DataRowByte), Buffer(bw.toBytes))
-      new DataRowContainer(columns, bytes, packet)
-    }
-
-    protected lazy implicit val arbitraryDataRowContainer: Arbitrary[DataRowContainer] =
-      Arbitrary(genDataRowContainer)
-
-    case class DataRowContainer(numColumns: Short, columnBytes: List[Option[Array[Byte]]], 
-      packet: Packet)
+      )
   }
 
   trait AuthenticationMessagesGen extends ScalaCheck {

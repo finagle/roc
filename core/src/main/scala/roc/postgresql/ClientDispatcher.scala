@@ -96,7 +96,7 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
         case Xor.Right(ErrorResponse(e))    => 
           Future.exception(new PostgresqlServerFailure(e))
         case Xor.Right(NoticeResponse(_))   => go(xs, ys, ccStr) // throw Notice Responses away
-        case Xor.Right(Idle)                => Future.value((xs, ys, ccStr))
+        case Xor.Right(Idle)                => Future.value((xs.reverse, ys.reverse, ccStr))
         case Xor.Right(u) =>
           Future.exception(new PostgresqlStateMachineFailure("Query", u.toString))
         case Xor.Left(l)  => Future.exception(l)

@@ -37,7 +37,7 @@ final class Result(rowDescription: List[RowDescription], data: List[DataRow], cc
         }
         loop(t, element :: ys, i + 1)
       }
-      case t => ys
+      case t => ys.reverse
     }
     val elements = loop(x.columnBytes, List.empty[Element], 0)
     new Row(elements)
