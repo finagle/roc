@@ -158,10 +158,8 @@ final class PacketDecodersSpec extends Specification with ScalaCheck { def is = 
   }
 
   case class DR() extends generators.DataRowGen {
-    val testValidPacket = forAll { (drc: DataRowContainer) =>
-      val dr = decodePacket[DataRow](drc.packet)
-      decodePacket[DataRow](drc.packet) must_==
-        Xor.Right(DataRow(drc.numColumns, drc.columnBytes))
+    val testValidPacket = forAll { x: DataRowContainer  =>
+      decodePacket[DataRow](x.packet) must_== Xor.Right(x.dataRow)
     }
 
     val testInvalidPacket = { 
