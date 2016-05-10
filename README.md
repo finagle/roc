@@ -14,7 +14,8 @@ roc is a modern [Finagle][finagle] [Postgresql][postgresql] [Client][finagle-cli
 Roc is published to [Maven Central], so for the latest stable version add the following to your build:
 ```scala
 libraryDependencies ++= Seq(
-  "com.github.finagle" %% "roc-core" % "0.0.1"
+  "com.github.finagle" %% "roc-core"  % "0.0.3",
+  "com.github.finagle" %% "roc-types" % "0.0.3"
 )
 ```
 Roc is under heavy development, so to stay up to with the latest `SNAPSHOT` version add the following to your build instead:
@@ -22,7 +23,7 @@ Roc is under heavy development, so to stay up to with the latest `SNAPSHOT` vers
 resolvers += Resolver.sonatypeRepo("snapshots")
 
 libraryDependencies ++= Seq(
-  "com.github.finagle"  %% "roc-core" % "0.0.2-SNAPSHOT" changing()
+  "com.github.finagle"  %% "roc-core" % "0.0.4-SNAPSHOT" changing()
 )
 ```
 
@@ -39,6 +40,23 @@ val client = Postgresql.client
   .newRichClient("inet!localhost:5432")
 val req = new Request("SELECT * FROM STATES;")
 val result = Await.result(client.query(req))
+result: roc.postgresql.Result = Result(Text('id,23,1)Text('name,25,Alabama)Text('abbrv,1043,AL), Text('id,23,2)...)
+```
+Let's turn a `Result` into all 50 `State(s)`.
+```scala
+import java.time.ZonedDateTime
+import roc.types.decoders._
+
+case class State(id: Int, name: String, abbrv: String, insertedAt: ZonedDateTime)
+val row2State: (Row) => (State) = (row: Row) => {
+  val id = row.get('id).as[Int]
+  val name = row.get('name).as[String]
+  val abbrv = row.get('abbrv).as[String]
+  val insertedAt = row.get('inserted_at).as[TimestampWithTZ]
+  State(id, name, abbrv, insertedAt)
+}
+val states = result.map(row2State).toList
+states: List[State] = List(State(1,Alabama,AL,2016-05-10T11:59:13.879709-05:00), State(2,Alaska,AK,2016-05-10T11:59:20.974995-05:00))
 ```
 If you're into Scaladocs ( I am ), they can be found [here][Scaladocs].
 
@@ -104,16 +122,16 @@ An `Element` has 3 sub-types
 2. Binary
 3. NULL
 
-Yes, we've introduced a specific `NULL` type into the system. No, I wasn't drunk. If a requested value
-has the ability to be `NULL` in the Database, and is in fact NULL, Postgresql doesn't tell you about it.
-It simply gives you no bytes to decode and lets your figure it out.
+Yes, we've deliberately introduced a specific `NULL` type into the system. This allows clients to handle
+`NULL` cases in whatever way they see fit.
+
 To get a value out of an `Element`, you have several options:
 ```scala
 scala> val count = head.get('count)
 count: roc.postgresql.Element = Text('count,20,50)
 
 scala> count.asString
-res4: String = 7
+res4: String = 50
 
 scala> count.asBytes
 roc.postgresql.failures$UnsupportedDecodingFailure: Attempted Binary decoding of String column.
@@ -137,6 +155,49 @@ def fold[A](fa: String => A, fb: Array[Byte] => A, fc: () => A): A = this match 
  ```
  An `ElementDecoder` is a TypeClass to allow custom decoding in a more syntax friendly way. See the [Scaladocs]
  or gitter for more information.
+
+## decoders
+The `roc-types` project defines type aliases from `Postgresql => Scala`, and includes `ElementDecoder` instances for those types. The current types include
+
+* `smallint => Short`
+* `int     => Int`
+* `bigint => Long`
+* `real => Float`
+* `double precision => Double`
+* `char => Char (Note this is a C-Style understanding of a Char, not a UTF Rune)`
+* `text/CHARACTER VARYING => String`
+* `bool    => Boolean`
+* `JSON/JSONB => Json` (via Jawn)
+* `Date => Date = java.time.LocalDate`
+* `Time => Time = java.time.LocalTime`
+*  `TIME WITH TIME ZONE => TimestampWithTZ = java.time.ZonedDateTime`
+* `NULL => Option`
+
+### Optional Decoders
+To decode a column that may be NULL, clients should simply use an `Option[A]` decoder, where `A = COLUMN TYPE`.
+Let's add a `population` column to our `states` table, of type `int`.
+```scala
+case class State(id: Int, name: String, abbrv: String, population: Option[Int],
+insertedAt: ZonedDateTime)
+val row2State: (Row) => (State) = (row: Row) => {
+  val id = row.get('id).as[Int]
+  val name = row.get('name).as[String]
+  val abbrv = row.get('abbrv).as[String]
+  val population = row.get('population).as[Int]
+  val insertedAt = row.get('inserted_at).as[TimestampWithTZ]
+  State(id, name, abbrv, population, insertedAt)
+}
+val state = result.map(row2State).toList.head
+states: State = State(1,Alabama,AL,None,2016-05-10T12:46:59.998788-05:00)
+```
+As the type of column should be known at compile time, `roc-types` throws an `NullDecodedFailure(TYPE)`
+with a helpful error message if you attempt to decode a `NULL` type:
+```scala
+scala> val row = result.head
+row: roc.postgresql.Row = Text('inserted_at,1184,2016-05-1012:46:59.998788-05)Null('population,23)Text('abbrv,1043,AL)Text('name,25,Alabama)Text('id,23,1)
+scala> val population = row.get('population).as[Int]
+roc.types.failures$NullDecodedFailure: A NULL value was decoded for type INT. Hint: use the Option[INT] decoder, or ensure that Postgres cannot return NULL for the requested value.
+```
 
 ## Design Philosophy
 The desire of `core` is to be as minimal as possible. In practice, that means mapping a Finagle Service over Postgresql with as little bedazzling as possible.
