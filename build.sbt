@@ -24,15 +24,15 @@ lazy val compilerOptions = Seq(
   "-Xfuture"
 )
 
-lazy val specs2Version = "3.7"
+lazy val specs2Version = "3.8"
 
 lazy val testDependencies = Seq(
   "org.specs2"      %%  "specs2-core"       %   specs2Version,
   "org.specs2"      %%  "specs2-scalacheck" %   specs2Version,
   "org.specs2"      %%  "specs2-junit"      %   specs2Version,
   "org.specs2"      %%  "specs2-mock"       %   specs2Version,
-  "io.circe"        %%  "circe-core"        %   "0.4.1",
-  "io.circe"        %%  "circe-generic"     %   "0.4.1",
+  "io.circe"        %%  "circe-core"        %   circeVersion,
+  "io.circe"        %%  "circe-generic"     %   circeVersion,
   "io.netty"        %   "netty-buffer"      %   nettyVersion
 )
 
@@ -57,11 +57,15 @@ lazy val allSettings = buildSettings ++ baseSettings
 
 lazy val coreVersion = "0.0.2"
 
-lazy val catsVersion = "0.4.1"
+lazy val catsVersion = "0.5.0"
 
 lazy val finagleVersion = "6.35.0"
 
 lazy val nettyVersion = "4.0.36.Final"
+
+lazy val circeVersion = "0.4.1"
+
+lazy val jawnVersion = "0.8.4"
 
 lazy val roc = project.in(file("."))
   .settings(moduleName := "root")
@@ -79,7 +83,6 @@ lazy val core =  project
   .settings(
     libraryDependencies ++= Seq(
       "org.typelevel"   %%  "cats"          %  catsVersion,
-      "org.spire-math"  %%  "algebra"       %  "0.3.1",
       "io.netty"        %   "netty-buffer"  %  nettyVersion,
       "com.twitter"     %%  "finagle-core"  %  finagleVersion
     )
@@ -94,8 +97,8 @@ lazy val types = project
   .settings(
     libraryDependencies ++= Seq(
       "io.netty"        %   "netty-buffer"  %  nettyVersion,
-      "org.spire-math"  %%  "jawn-ast"      %  "0.8.4",
-      "org.typelevel"   %%  "cats"          %   catsVersion
+      "org.spire-math"  %%  "jawn-ast"      %  jawnVersion,
+      "org.typelevel"   %%  "cats"          %  catsVersion
     )
   )
   .dependsOn(core)
