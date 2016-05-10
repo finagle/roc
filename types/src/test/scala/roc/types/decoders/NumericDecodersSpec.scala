@@ -162,7 +162,7 @@ final class NumericDecodersSpec extends Specification with ScalaCheck { def is =
       Decoders.longElementDecoder.binaryDecoder(xs) must throwA[ElementDecodingFailure]
     }
 
-    val testNullDecoding = Decoders.intElementDecoder.nullDecoder must throwA[NullDecodedFailure]
+    val testNullDecoding = Decoders.longElementDecoder.nullDecoder must throwA[NullDecodedFailure]
 
     /** testValidTextDecoding */
     protected case class LongStringContainer(long: Long, longString: String)
