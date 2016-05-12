@@ -139,9 +139,7 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
         case AuthenticationGSS             =>
           Future.exception(new UnsupportedAuthenticationFailure("AuthenticationGSS"))
         case ErrorResponse(m) => Future.exception(new PostgresqlServerFailure(m))
-        case u => println(u); Future.exception(
-          new PostgresqlStateMachineFailure("StartupMessage", u.toString)
-        )
+        case u => Future.exception(new PostgresqlStateMachineFailure("StartupMessage", u.toString))
     })
   }
 
@@ -177,7 +175,7 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
       val pm = new PasswordMessage(startup.password)
       exchange(pm).flatMap(response => response match {
         case AuthenticationOk => Future.Done
-        case ErrorResponse(_) => Future.exception(new Exception())
+        case ErrorResponse(e) => Future.exception(new PostgresqlServerFailure(e))
         case u => Future.exception(
           new PostgresqlStateMachineFailure("PasswordMessage", u.toString)
         )
@@ -192,8 +190,8 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
       salt)
     val pm = new PasswordMessage(encryptedPasswd)
     exchange(pm).flatMap(response => response match {
-      case AuthenticationOk  => Future.Done
-      case er: ErrorResponse => Future.exception(new Exception())
+      case AuthenticationOk => Future.Done
+      case ErrorResponse(e) => Future.exception(new PostgresqlServerFailure(e))
       case u => Future.exception(new PostgresqlStateMachineFailure("PasswordMessage", u.toString))
     })
   }
