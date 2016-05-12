@@ -2,6 +2,8 @@ import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import sbtunidoc.Plugin.UnidocKeys._
 import ScoverageSbtPlugin._
 
+Defaults.itSettings
+
 lazy val buildSettings = Seq(
   organization := "com.github.finagle",
   scalaVersion := "2.11.8",
@@ -42,18 +44,18 @@ lazy val baseSettings = Seq(
   scalacOptions ++= compilerOptions, 
   scalacOptions in (Compile, console) := compilerOptions, 
   scalacOptions in (Compile, doc) ++= Seq(
-    "-doc-title", "Roc",
+    "-doc-title", "roc",
     "-doc-version", version.value,
     "-groups"
   ),
-  libraryDependencies ++= testDependencies.map(_ % "test"),
+  libraryDependencies ++= testDependencies.map(_ % "it,test"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
   coverageEnabled := true,
   autoAPIMappings := true,
   resolvers += "Twitter Maven repo" at "http://maven.twttr.com/"
 )
 
-lazy val allSettings = buildSettings ++ baseSettings 
+lazy val allSettings = buildSettings ++ baseSettings ++ Defaults.itSettings
 
 lazy val coreVersion = "0.0.4-SNAPSHOT"
 
@@ -69,6 +71,7 @@ lazy val jawnVersion = "0.8.4"
 
 lazy val roc = project.in(file("."))
   .settings(moduleName := "root")
+  .configs( IntegrationTest )
   .settings(allSettings)
   .settings(docSettings)
   .aggregate(core, types)
@@ -76,6 +79,7 @@ lazy val roc = project.in(file("."))
 
 lazy val core =  project
   .settings(moduleName := "roc-core")
+  .configs( IntegrationTest )
   .settings(version := coreVersion)
   .settings(allSettings:_*)
   .settings(docSettings)
@@ -91,6 +95,7 @@ lazy val core =  project
 lazy val types = project
   .settings(moduleName := "roc-types")
   .settings(version := coreVersion)
+  .configs( IntegrationTest )
   .settings(allSettings:_*)
   .settings(docSettings)
   .settings(sharedPublishSettings)
