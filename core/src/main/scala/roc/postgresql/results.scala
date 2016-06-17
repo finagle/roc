@@ -3,6 +3,7 @@ package postgresql
 
 import cats.data.Xor
 import cats.Show
+import java.nio.charset.StandardCharsets
 import roc.postgresql.failures.{ElementNotFoundFailure, UnsupportedDecodingFailure}
 import roc.postgresql.server.PostgresqlMessage
 
@@ -27,8 +28,8 @@ final class Result(rowDescription: List[RowDescription], data: List[DataRow], cc
             val column = columns(i)
             column.formatCode match {
               case TextFormat => {
-                val strValue = bytes.map(_.toChar).mkString
-                Text(column.name, column.columnType, strValue)
+                val stringValue = new String(bytes, StandardCharsets.UTF_8)
+                Text(column.name, column.columnType, stringValue)
               }
               case BinaryFormat => Binary(column.name, column.columnType, bytes)
             }
