@@ -14,8 +14,8 @@ roc is a modern [Finagle][finagle] [Postgresql][postgresql] [Client][finagle-cli
 Roc is published to [Maven Central], so for the latest stable version add the following to your build:
 ```scala
 libraryDependencies ++= Seq(
-  "com.github.finagle" %% "roc-core"  % "0.0.3",
-  "com.github.finagle" %% "roc-types" % "0.0.3"
+  "com.github.finagle" %% "roc-core"  % "0.0.4",
+  "com.github.finagle" %% "roc-types" % "0.0.4"
 )
 ```
 Roc is under heavy development, so to stay up to with the latest `SNAPSHOT` version add the following to your build instead:
@@ -23,7 +23,7 @@ Roc is under heavy development, so to stay up to with the latest `SNAPSHOT` vers
 resolvers += Resolver.sonatypeRepo("snapshots")
 
 libraryDependencies ++= Seq(
-  "com.github.finagle"  %% "roc-core" % "0.0.4-SNAPSHOT" changing()
+  "com.github.finagle"  %% "roc-core" % "0.0.5-SNAPSHOT" changing()
 )
 ```
 
