@@ -1,7 +1,7 @@
 package roc
 package postgresql
 
-import algebra.Eq
+import cats.Eq
 import cats.data.Xor
 import cats.std.all._
 import cats.syntax.eq._

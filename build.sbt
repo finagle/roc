@@ -57,15 +57,15 @@ lazy val baseSettings = Seq(
 
 lazy val allSettings = buildSettings ++ baseSettings ++ Defaults.itSettings
 
-lazy val coreVersion = "0.0.4-SNAPSHOT"
+lazy val coreVersion = "0.0.4"
 
-lazy val catsVersion = "0.5.0"
+lazy val catsVersion = "0.6.0"
 
-lazy val finagleVersion = "6.35.0"
+lazy val finagleVersion = "6.36.0"
 
 lazy val nettyVersion = "4.0.36.Final"
 
-lazy val circeVersion = "0.4.1"
+lazy val circeVersion = "0.5.0-M2"
 
 lazy val jawnVersion = "0.8.4"
 
