@@ -26,7 +26,7 @@ lazy val compilerOptions = Seq(
   "-Xfuture"
 )
 
-lazy val specs2Version = "3.8"
+lazy val specs2Version = "3.8.5"
 
 lazy val testDependencies = Seq(
   "org.specs2"      %%  "specs2-core"       %   specs2Version,
@@ -57,13 +57,13 @@ lazy val baseSettings = Seq(
 
 lazy val allSettings = buildSettings ++ baseSettings ++ Defaults.itSettings
 
-lazy val coreVersion = "0.0.5-SNAPSHOT"
+lazy val coreVersion = "0.0.5"
 
 lazy val catsVersion = "0.6.0"
 
-lazy val finagleVersion = "6.36.0"
+lazy val finagleVersion = "6.38.0"
 
-lazy val nettyVersion = "4.0.36.Final"
+lazy val nettyVersion = "4.1.6.Final"
 
 lazy val circeVersion = "0.5.0-M2"
 
