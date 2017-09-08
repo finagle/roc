@@ -1,13 +1,13 @@
 import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import sbtunidoc.Plugin.UnidocKeys._
-import ScoverageSbtPlugin._
+//import ScoverageSbtPlugin._
 
 Defaults.itSettings
 
 lazy val buildSettings = Seq(
   organization := "com.github.finagle",
-  scalaVersion := "2.11.8",
-  crossScalaVersions := Seq("2.10.6", "2.11.8")
+  scalaVersion := "2.12.3",
+  crossScalaVersions := Seq("2.11.8", "2.12.3")
 )
 
 lazy val compilerOptions = Seq(
@@ -18,7 +18,6 @@ lazy val compilerOptions = Seq(
   "-Xfatal-warnings",
   "-Xlint",
   "-language:implicitConversions",
-  "-Yinline-warnings",
   "-Yno-adapted-args",
   "-Ywarn-dead-code",
   "-Ywarn-value-discard",
@@ -26,7 +25,7 @@ lazy val compilerOptions = Seq(
   "-Xfuture"
 )
 
-lazy val specs2Version = "3.8.5"
+lazy val specs2Version = "3.9.5"
 
 lazy val testDependencies = Seq(
   "org.specs2"      %%  "specs2-core"       %   specs2Version,
@@ -41,8 +40,8 @@ lazy val testDependencies = Seq(
 scalacOptions in Test ++= Seq("-Yrangepos")
 
 lazy val baseSettings = Seq(
-  scalacOptions ++= compilerOptions, 
-  scalacOptions in (Compile, console) := compilerOptions, 
+  scalacOptions ++= compilerOptions,
+  scalacOptions in (Compile, console) := compilerOptions,
   scalacOptions in (Compile, doc) ++= Seq(
     "-doc-title", "roc",
     "-doc-version", version.value,
@@ -50,7 +49,7 @@ lazy val baseSettings = Seq(
   ),
   libraryDependencies ++= testDependencies.map(_ % "it,test"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
-  coverageEnabled := true,
+  //coverageEnabled := true,
   autoAPIMappings := true,
   resolvers += "Twitter Maven repo" at "http://maven.twttr.com/"
 )
@@ -59,15 +58,15 @@ lazy val allSettings = buildSettings ++ baseSettings ++ Defaults.itSettings
 
 lazy val coreVersion = "0.0.5"
 
-lazy val catsVersion = "0.6.0"
+lazy val catsVersion = "0.9.0"
 
-lazy val finagleVersion = "6.38.0"
+lazy val finagleVersion = "6.45.0"
 
-lazy val nettyVersion = "4.1.6.Final"
+lazy val nettyVersion = "4.1.10.Final"
 
-lazy val circeVersion = "0.5.0-M2"
+lazy val circeVersion = "0.8.0"
 
-lazy val jawnVersion = "0.8.4"
+lazy val jawnVersion = "0.10.4"
 
 lazy val roc = project.in(file("."))
   .settings(moduleName := "root")
@@ -86,9 +85,10 @@ lazy val core =  project
   .settings(sharedPublishSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "org.typelevel"   %%  "cats"          %  catsVersion,
-      "io.netty"        %   "netty-buffer"  %  nettyVersion,
-      "com.twitter"     %%  "finagle-core"  %  finagleVersion
+      "org.typelevel"   %%  "cats"            %  catsVersion,
+      "io.netty"        %   "netty-buffer"    %  nettyVersion,
+      "com.twitter"     %%  "finagle-core"    %  finagleVersion
+      //"com.twitter"     %%  "finagle-netty3"  %  finagleVersion
     )
   )
 

@@ -4,10 +4,9 @@ package transport
 
 import java.nio.charset.StandardCharsets
 import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen
 import org.scalacheck.Prop.forAll
-import org.scalacheck.{Arbitrary, Gen}
-import org.specs2._
-import org.specs2.specification.core._
+import org.specs2.{ScalaCheck, Specification}
 
 final class BufSpec extends Specification with ScalaCheck { def is = s2"""
 

@@ -2,7 +2,6 @@ package roc
 package postgresql
 
 import cats.data.NonEmptyList
-import cats.implicits._
 import roc.postgresql.server.PostgresqlMessage
 
 object failures {

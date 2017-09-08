@@ -2,16 +2,14 @@ package roc
 package postgresql
 package transport
 
-import com.twitter.finagle.client.Transporter
-import com.twitter.finagle.netty3.Netty3Transporter
-import com.twitter.util.NonFatal
 import org.jboss.netty.buffer.ChannelBuffer
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.frame.FrameDecoder
+import scala.util.control.NonFatal
 
 private[roc] final class PacketFrameDecoder extends FrameDecoder {
 
-  override def decode(ctx: ChannelHandlerContext, channel: Channel, 
+  override def decode(ctx: ChannelHandlerContext, channel: Channel,
                       buffer: ChannelBuffer): Packet = {
     if(buffer.readableBytes < Packet.HeaderSize) return null
 

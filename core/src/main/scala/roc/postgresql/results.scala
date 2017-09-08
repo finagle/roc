@@ -1,11 +1,9 @@
 package roc
 package postgresql
 
-import cats.data.Xor
 import cats.Show
 import java.nio.charset.StandardCharsets
 import roc.postgresql.failures.{ElementNotFoundFailure, UnsupportedDecodingFailure}
-import roc.postgresql.server.PostgresqlMessage
 
 final class Result(rowDescription: List[RowDescription], data: List[DataRow], cc: String = "")
   extends Iterable[Row] {
@@ -133,10 +131,10 @@ sealed abstract class Element(val name: Symbol, columnType: Int) {
     * @param fb a function `Array[Byte] => A`
     * @param fc a function `() => A`
     */
-  def fold[A](fa: String => A, fb: Array[Byte] => A, fc: () => A): A = this match {
+  def fold[A](fa: String => A, fb: Array[Byte] => A, fc: Null => A): A = this match {
     case Text(_, _, value)   => fa(value)
     case Binary(_, _, value) => fb(value)
-    case Null(_, _)          => fc()
+    case n: Null             => fc(n)
   }
 
   /** Folds an [[ElementDecoder]] typeclass to create a value of Type `A`
@@ -144,7 +142,7 @@ sealed abstract class Element(val name: Symbol, columnType: Int) {
     * @param f an implicit [[ElementDecoder]] typeclass
     * @return A
     */
-  def as[A](implicit f: ElementDecoder[A]): A = 
+  def as[A](implicit f: ElementDecoder[A]): A =
     fold(f.textDecoder, f.binaryDecoder, f.nullDecoder)
 
   /** Decodes this element as a String
@@ -156,7 +154,7 @@ sealed abstract class Element(val name: Symbol, columnType: Int) {
     {(s: String) => s},
     {(bs: Array[Byte]) =>
       throw new UnsupportedDecodingFailure(s"Attempted String decoding of Binary column.")},
-    {() => 
+    {(n: Null) =>
       throw new UnsupportedDecodingFailure(s"Attempted String decoding of Null column.")}
   )
 
@@ -165,14 +163,14 @@ sealed abstract class Element(val name: Symbol, columnType: Int) {
     * @see [[http://www.postgresql.org/docs/current/static/protocol-overview.html
     *   50.1.3 Formats and Format Codes]]
     * @note Binary representations for integers use network byte order (most significant byte first).
-    *  For other data types consult the documentation or source code to learn about the binary 
+    *  For other data types consult the documentation or source code to learn about the binary
     *  representation.
     */
   def asBytes(): Array[Byte] = fold(
-    {(s: String) => 
+    {(s: String) =>
       throw new UnsupportedDecodingFailure(s"Attempted Binary decoding of String column.")},
     {(bs: Array[Byte]) => bs},
-    {() =>
+    {(n: Null) =>
       throw new UnsupportedDecodingFailure(s"Attempted Binary decoding of Null column.")}
   )
 }
@@ -186,5 +184,5 @@ case class Binary(override val name: Symbol, columnType: Int, value: Array[Byte]
 trait ElementDecoder[A] {
   def textDecoder(text: String): A
   def binaryDecoder(bytes: Array[Byte]): A
-  def nullDecoder(): A
+  def nullDecoder(n: Null): A
 }

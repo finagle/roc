@@ -1,13 +1,15 @@
 package roc
 package integrations
 
-import com.twitter.finagle.{Addr, Address, Name, Service}
+import com.twitter.finagle.{Addr, Address, Name}
 import com.twitter.util.Var
 import scala.io.Source
 
 trait Client {
   private val db     = "circle_test"
+  //private val db     = "postgres"
   private val user   = "ubuntu"
+  //private val user   = "postgres"
   private val passwd = ""
   private val host   = "127.0.0.1"
   private val port   = 5432

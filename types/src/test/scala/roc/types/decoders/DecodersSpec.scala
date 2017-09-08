@@ -5,7 +5,8 @@ import io.netty.buffer.Unpooled
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Gen}
-import org.specs2._
+import org.specs2.{ScalaCheck, Specification}
+import roc.postgresql.Null
 import roc.types.failures.{ElementDecodingFailure, NullDecodedFailure}
 import roc.types.{decoders => Decoders}
 
@@ -47,7 +48,7 @@ final class DecodersSpec extends Specification with ScalaCheck { def is = s2"""
       Decoders.stringElementDecoder.binaryDecoder(xs) must_== expected
     }
     val testNullDecoding = {
-      Decoders.stringElementDecoder.nullDecoder must throwA[NullDecodedFailure]
+      Decoders.stringElementDecoder.nullDecoder(Null('doesnotmatter, 71)) must throwA[NullDecodedFailure]
     }
   }
 
@@ -65,7 +66,7 @@ final class DecodersSpec extends Specification with ScalaCheck { def is = s2"""
       Decoders.booleanElementDecoder.binaryDecoder(xs) must throwA[ElementDecodingFailure]
     }
     val testNullDecoding = {
-      Decoders.booleanElementDecoder.nullDecoder must throwA[NullDecodedFailure]
+      Decoders.booleanElementDecoder.nullDecoder(Null('doesnotmatter, 71)) must throwA[NullDecodedFailure]
     }
 
     /** testValidTextDecoding */
@@ -118,7 +119,7 @@ final class DecodersSpec extends Specification with ScalaCheck { def is = s2"""
       Decoders.optionElementDecoder[Int].binaryDecoder(xs) must throwA[ElementDecodingFailure]
     }
     val testNullDecoding = forAll { i: Int =>
-      Decoders.optionElementDecoder[Int].nullDecoder() must_== None
+      Decoders.optionElementDecoder[Int].nullDecoder(Null('doesnotmatter, -71)) must_== None
     }
 
     case class IntStringContainer(int: Int, intString: String)
@@ -163,7 +164,7 @@ final class DecodersSpec extends Specification with ScalaCheck { def is = s2"""
       Decoders.charElementDecoder.binaryDecoder(xs) must throwA[ElementDecodingFailure]
     }
     val testNullDecoding = {
-      Decoders.charElementDecoder.nullDecoder must throwA[NullDecodedFailure]
+      Decoders.charElementDecoder.nullDecoder(Null('doesnotmatter, -71)) must throwA[NullDecodedFailure]
     }
 
     case class CharStringContainer(char: Char, charString: String)

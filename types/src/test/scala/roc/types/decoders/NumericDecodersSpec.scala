@@ -6,6 +6,7 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Gen}
 import org.specs2.{ScalaCheck, Specification}
+import roc.postgresql.Null
 import roc.types.failures.{ElementDecodingFailure, NullDecodedFailure}
 import roc.types.{decoders => Decoders}
 
@@ -65,7 +66,7 @@ final class NumericDecodersSpec extends Specification with ScalaCheck { def is =
       Decoders.shortElementDecoder.binaryDecoder(xs) must throwA[ElementDecodingFailure]
     }
 
-    val testNullDecoding = Decoders.shortElementDecoder.nullDecoder must throwA[NullDecodedFailure]
+    val testNullDecoding = Decoders.shortElementDecoder.nullDecoder(Null('doesnotmatter, 71)) must throwA[NullDecodedFailure]
 
     /** testValidTextDecoding */
      case class ShortStringContainer(short: Short, shortString: String)
@@ -114,7 +115,7 @@ final class NumericDecodersSpec extends Specification with ScalaCheck { def is =
       Decoders.intElementDecoder.binaryDecoder(xs) must throwA[ElementDecodingFailure]
     }
 
-    val testNullDecoding = Decoders.intElementDecoder.nullDecoder must throwA[NullDecodedFailure]
+    val testNullDecoding = Decoders.intElementDecoder.nullDecoder(Null('doesnotmatter, 71)) must throwA[NullDecodedFailure]
 
     /** testValidTextDecoding */
     protected case class IntStringContainer(int: Int, strValue: String)
@@ -162,7 +163,7 @@ final class NumericDecodersSpec extends Specification with ScalaCheck { def is =
       Decoders.longElementDecoder.binaryDecoder(xs) must throwA[ElementDecodingFailure]
     }
 
-    val testNullDecoding = Decoders.longElementDecoder.nullDecoder must throwA[NullDecodedFailure]
+    val testNullDecoding = Decoders.longElementDecoder.nullDecoder(Null('doesnotmatter, 71)) must throwA[NullDecodedFailure]
 
     /** testValidTextDecoding */
     protected case class LongStringContainer(long: Long, longString: String)
@@ -210,7 +211,7 @@ final class NumericDecodersSpec extends Specification with ScalaCheck { def is =
       Decoders.floatElementDecoder.binaryDecoder(xs) must throwA[ElementDecodingFailure]
     }
 
-    val testNullDecoding = Decoders.floatElementDecoder.nullDecoder must throwA[NullDecodedFailure]
+    val testNullDecoding = Decoders.floatElementDecoder.nullDecoder(Null('doesnotmatter, 71)) must throwA[NullDecodedFailure]
 
     /** testValidTextDecoding */
     protected case class FloatStringContainer(float: Float, floatString: String)
@@ -258,7 +259,7 @@ final class NumericDecodersSpec extends Specification with ScalaCheck { def is =
       Decoders.doubleElementDecoder.binaryDecoder(xs) must throwA[ElementDecodingFailure]
     }
 
-    val testNullDecoding = Decoders.doubleElementDecoder.nullDecoder must throwA[NullDecodedFailure]
+    val testNullDecoding = Decoders.doubleElementDecoder.nullDecoder(Null('doesnotmatter, 71)) must throwA[NullDecodedFailure]
 
     /** testValidTextDecoding */
     protected case class DoubleStringContainer(double: Double, doubleString: String)

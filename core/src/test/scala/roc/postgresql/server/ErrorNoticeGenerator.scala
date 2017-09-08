@@ -2,13 +2,9 @@ package roc
 package postgresql
 package server
 
-import cats.std.all._
-import cats.syntax.eq._
+import cats.implicits._
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Gen}
-import org.specs2._
-import org.specs2.specification.core._
 import roc.postgresql.server.ErrorNoticeMessageFields._
 
 /** Used to generate valid and invalid Error / Notice Responses
