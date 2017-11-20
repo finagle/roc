@@ -9,6 +9,7 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Gen}
 import org.specs2.{ScalaCheck, Specification}
+import roc.postgresql.Null
 import roc.types.failures.{ElementDecodingFailure, NullDecodedFailure}
 import roc.types.{decoders => Decoders}
 
@@ -39,8 +40,8 @@ final class JsonDecoderSpec extends Specification with ScalaCheck { def is = s2"
     Decoders.jsonElementDecoder.binaryDecoder(xs) must throwA[ElementDecodingFailure]
   }
 
-  private val testNullDecoding = 
-    Decoders.jsonElementDecoder.nullDecoder must throwA[NullDecodedFailure]
+  private val testNullDecoding =
+    Decoders.jsonElementDecoder.nullDecoder(Null('doesnotmatter, -71)) must throwA[NullDecodedFailure]
 
   case class JsonContainer(text: String, json: Json)
   private lazy val genJsonContainer: Gen[JsonContainer] = for {

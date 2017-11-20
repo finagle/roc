@@ -1,10 +1,11 @@
 package roc
 
-import com.twitter.finagle.client.{DefaultPool, StackClient, StdStackClient, Transporter}
+import com.twitter.finagle.client.{DefaultPool, StackClient, StdStackClient}
 import com.twitter.finagle.netty3.Netty3Transporter
 import com.twitter.finagle.transport.Transport
 import com.twitter.finagle.{Name, Service, ServiceFactory, Stack}
-import com.twitter.util.{Duration, Future}
+import com.twitter.util.Duration
+import java.net.SocketAddress
 import roc.postgresql.transport.{Packet, PostgresqlClientPipelineFactory}
 import roc.postgresql.{Request, Result, Startup}
 
@@ -61,9 +62,9 @@ object Postgresql extends com.twitter.finagle.Client[Request, Result]
 
   protected type In = Packet
   protected type Out = Packet
-  protected def newTransporter = Netty3Transporter[Packet, Packet](
-    PostgresqlClientPipelineFactory, StackClient.defaultParams)
-  protected def newDispatcher(transport: Transport[Packet, Packet]): 
+  protected def newTransporter(addr: SocketAddress) =
+    Netty3Transporter[Packet, Packet](PostgresqlClientPipelineFactory, addr, StackClient.defaultParams)
+  protected def newDispatcher(transport: Transport[Packet, Packet]):
     Service[Request, Result] = postgresql.ClientDispatcher(transport, Startup(params))
   override def configured[P](psp: (P, Stack.Param[P])): Client = super.configured(psp)
 
@@ -85,7 +86,7 @@ object Postgresql extends com.twitter.finagle.Client[Request, Result]
     */
   val client = Client()
 
-  def newClient(dest: Name, label: String): ServiceFactory[Request, Result] = 
+  def newClient(dest: Name, label: String): ServiceFactory[Request, Result] =
     client.newClient(dest, label)
 
   def newService(dest: Name, label: String): Service[Request, Result] =

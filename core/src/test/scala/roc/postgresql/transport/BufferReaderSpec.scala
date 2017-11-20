@@ -2,9 +2,8 @@ package roc
 package postgresql
 package transport
 
-import org.specs2._
+import org.specs2.Specification
 import org.specs2.specification.core._
-import org.specs2.specification.create.FragmentsFactory
 
 final class BufferReaderSpec extends Specification { def is = s2"""
 

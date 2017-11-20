@@ -4,7 +4,6 @@ package postgresql
 import java.nio.charset.StandardCharsets
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Gen}
 import org.specs2.ScalaCheck
 import roc.postgresql.transport.{Buf, Buffer, BufferWriter, Packet}

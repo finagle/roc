@@ -2,16 +2,15 @@ package roc
 package postgresql
 package transport
 
-import cats.data.Xor
+import cats.implicits._
 import roc.postgresql.failures.{Failure, PacketDecodingFailure}
 import roc.postgresql.server.PostgresqlMessage
-import scala.collection.mutable.ListBuffer
 
 private[postgresql] trait PacketDecoder[A <: BackendMessage] {
   def apply(p: Packet): PacketDecoder.Result[A]
 }
 private[postgresql] object PacketDecoder {
-  final type Result[A] = Xor[Failure, A]
+  final type Result[A] = Either[Failure, A]
 }
 
 private[postgresql] trait PacketDecoderImplicits {
@@ -20,7 +19,7 @@ private[postgresql] trait PacketDecoderImplicits {
   private[this] type Field = (Char, String)
   private[this] type Fields = List[Field]
 
-  def readErrorNoticePacket(p: Packet): Xor[Throwable, Fields] = Xor.catchNonFatal({
+  def readErrorNoticePacket(p: Packet): Either[Throwable, Fields] = Either.catchNonFatal({
     val br = BufferReader(p.body)
 
     @annotation.tailrec
@@ -34,29 +33,29 @@ private[postgresql] trait PacketDecoderImplicits {
     loop(List.empty[Field])
   })
 
-  implicit val noticeResponsePacketDecoder: PacketDecoder[NoticeResponse] = 
+  implicit val noticeResponsePacketDecoder: PacketDecoder[NoticeResponse] =
     new PacketDecoder[NoticeResponse] {
       def apply(p: Packet): Result[NoticeResponse] = readErrorNoticePacket(p)
         .leftMap(t => new PacketDecodingFailure(t.getMessage))
         .flatMap(xs => PostgresqlMessage(xs).fold(
-          {l => Xor.Left(l)},
-          {r => Xor.Right(new NoticeResponse(r))}
+          {l => Left(l)},
+          {r => Right(new NoticeResponse(r))}
         ))
     }
 
-  implicit val errorMessagePacketDecoder: PacketDecoder[ErrorResponse] = 
+  implicit val errorMessagePacketDecoder: PacketDecoder[ErrorResponse] =
     new PacketDecoder[ErrorResponse] {
       def apply(p: Packet): Result[ErrorResponse] = readErrorNoticePacket(p)
       .leftMap(t => new PacketDecodingFailure(t.getMessage))
       .flatMap(xs => PostgresqlMessage(xs).fold(
-        {l => Xor.Left(l)},
-        {r => Xor.Right(new ErrorResponse(r))}
+        {l => Left(l)},
+        {r => Right(new ErrorResponse(r))}
       ))
     }
 
-  implicit val commandCompletePacketDecoder: PacketDecoder[CommandComplete] = 
+  implicit val commandCompletePacketDecoder: PacketDecoder[CommandComplete] =
     new PacketDecoder[CommandComplete] {
-      def apply(p: Packet): Result[CommandComplete] = Xor.catchNonFatal({
+      def apply(p: Packet): Result[CommandComplete] = Either.catchNonFatal({
         val br = BufferReader(p.body)
         val commandTag = br.readNullTerminatedString()
         new CommandComplete(commandTag)
@@ -65,7 +64,7 @@ private[postgresql] trait PacketDecoderImplicits {
 
   implicit val parameterStatusPacketDecoder: PacketDecoder[ParameterStatus] =
     new PacketDecoder[ParameterStatus] {
-      def apply(p: Packet): Result[ParameterStatus] = Xor.catchNonFatal({
+      def apply(p: Packet): Result[ParameterStatus] = Either.catchNonFatal({
         val br = BufferReader(p.body)
         val param = br.readNullTerminatedString()
         val value = br.readNullTerminatedString()
@@ -73,9 +72,9 @@ private[postgresql] trait PacketDecoderImplicits {
       }).leftMap(t => new PacketDecodingFailure(t.getMessage))
     }
 
-  implicit val backendKeyDataPacketDecoder: PacketDecoder[BackendKeyData] = 
+  implicit val backendKeyDataPacketDecoder: PacketDecoder[BackendKeyData] =
     new PacketDecoder[BackendKeyData] {
-      def apply(p: Packet): Result[BackendKeyData] = Xor.catchNonFatal({
+      def apply(p: Packet): Result[BackendKeyData] = Either.catchNonFatal({
         val br        = BufferReader(p.body)
         val processId = br.readInt
         val secretKey = br.readInt
@@ -85,7 +84,7 @@ private[postgresql] trait PacketDecoderImplicits {
 
   implicit val readyForQueryPacketDecoder: PacketDecoder[ReadyForQuery] =
     new PacketDecoder[ReadyForQuery] {
-      def apply(p: Packet): Result[ReadyForQuery] = Xor.catchNonFatal({
+      def apply(p: Packet): Result[ReadyForQuery] = Either.catchNonFatal({
         val br   = BufferReader(p.body)
         val byte = br.readByte
         byte.toChar
@@ -94,9 +93,9 @@ private[postgresql] trait PacketDecoderImplicits {
       .flatMap(ReadyForQuery(_))
     }
 
-  implicit val rowDescriptionPacketDecoder: PacketDecoder[RowDescription] = 
+  implicit val rowDescriptionPacketDecoder: PacketDecoder[RowDescription] =
     new PacketDecoder[RowDescription] {
-      def apply(p: Packet): Result[RowDescription] = Xor.catchNonFatal({
+      def apply(p: Packet): Result[RowDescription] = Either.catchNonFatal({
         val br        = BufferReader(p.body)
         val numFields = br.readShort
 
@@ -106,7 +105,7 @@ private[postgresql] trait PacketDecoderImplicits {
             case x if x < numFields => {
               val name = br.readNullTerminatedString()
               val tableObjectId = br.readInt
-              val tableAttributeId = br.readShort 
+              val tableAttributeId = br.readShort
               val dataTypeObjectId = br.readInt
               val dataTypeSize = br.readShort
               val typeModifier = br.readInt
@@ -129,12 +128,12 @@ private[postgresql] trait PacketDecoderImplicits {
     }
 
     implicit val dataRowPacketDecoder: PacketDecoder[DataRow] = new PacketDecoder[DataRow] {
-      def apply(p: Packet): Result[DataRow] = Xor.catchNonFatal({
+      def apply(p: Packet): Result[DataRow] = Either.catchNonFatal({
         val br = BufferReader(p.body)
         val columns = br.readShort
 
         @annotation.tailrec
-        def loop(idx: Short, cbs: List[Option[Array[Byte]]]): List[Option[Array[Byte]]] = 
+        def loop(idx: Short, cbs: List[Option[Array[Byte]]]): List[Option[Array[Byte]]] =
           idx match {
             case x if x < columns => {
               val columnLength = br.readInt
@@ -157,7 +156,7 @@ private[postgresql] trait PacketDecoderImplicits {
 
   implicit val authenticationMessagePacketDecoder: PacketDecoder[AuthenticationMessage] = 
     new PacketDecoder[AuthenticationMessage] {
-      def apply(p: Packet): Result[AuthenticationMessage] = Xor.catchNonFatal({
+      def apply(p: Packet): Result[AuthenticationMessage] = Either.catchNonFatal({
         val br = BufferReader(p.body)
         br.readInt match {
           case 0 => (0, None)

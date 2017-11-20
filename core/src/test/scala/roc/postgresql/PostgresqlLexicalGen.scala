@@ -2,11 +2,8 @@ package roc
 package postgresql
 
 import java.nio.charset.StandardCharsets
-import org.scalacheck.Arbitrary._
-import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.Prop.forAll
-import org.scalacheck.{Arbitrary, Gen}
-import org.specs2._
+import org.scalacheck.Gen
+import org.specs2.ScalaCheck
 
 /** Used for generating valid Postgresql Lexical structures
   *

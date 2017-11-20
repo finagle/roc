@@ -1,16 +1,12 @@
 package roc
 package postgresql
 
-import cats.data.Xor
-import cats.std.all._
-import cats.syntax.eq._
 import com.twitter.finagle.dispatch.GenSerialClientDispatcher
 import com.twitter.finagle.transport.Transport
 import com.twitter.finagle.{Service, WriteException}
 import com.twitter.util.{Future, Promise, Time}
 import roc.postgresql.failures.{PostgresqlServerFailure, PostgresqlStateMachineFailure,
   UnsupportedAuthenticationFailure}
-import roc.postgresql.server.{ErrorMessage, PostgresqlMessage, WarningMessage}
 import roc.postgresql.transport.{Packet, PacketEncoder}
 
 private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
@@ -55,8 +51,8 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
         for {
           packet <- trans.read()
           message <- Message.decode(packet) match {
-            case Xor.Left(l)  => Future.exception(l)
-            case Xor.Right(m) => Future.value(m)
+            case Left(l)  => Future.exception(l)
+            case Right(m) => Future.value(m)
           }
         } yield message
       }
@@ -73,7 +69,7 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
     for {
       _      <- trans.write(encodePacket(query)).rescue(wrapWriteException)
       signal =  rep.become(readTransport(query, new Promise[Unit]))
-    } yield signal 
+    } yield signal
   }
 
   private[this] def readTransport(req: Transmission, signal: Promise[Unit]): Future[Result] =
@@ -89,23 +85,23 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
     type Collection            = (Descriptions, Rows, CommandCompleteString)
     def go(xs: Descriptions, ys: Rows, ccStr: CommandCompleteString):
       Future[Collection] = trans.read().flatMap(packet => Message.decode(packet) match {
-        case Xor.Right(RowDescription(a,b)) => go(RowDescription(a,b) :: xs, ys, ccStr)
-        case Xor.Right(DataRow(a,b))        => go(xs, DataRow(a,b) :: ys, ccStr)
-        case Xor.Right(EmptyQueryResponse)  => go(xs, ys, "EmptyQueryResponse")
-        case Xor.Right(CommandComplete(x))  => go(xs, ys, x)
-        case Xor.Right(ErrorResponse(e))    => 
+        case Right(RowDescription(a,b)) => go(RowDescription(a,b) :: xs, ys, ccStr)
+        case Right(DataRow(a,b))        => go(xs, DataRow(a,b) :: ys, ccStr)
+        case Right(EmptyQueryResponse)  => go(xs, ys, "EmptyQueryResponse")
+        case Right(CommandComplete(x))  => go(xs, ys, x)
+        case Right(ErrorResponse(e))    =>
           Future.exception(new PostgresqlServerFailure(e))
-        case Xor.Right(NoticeResponse(_))   => go(xs, ys, ccStr) // throw Notice Responses away
-        case Xor.Right(Idle)                => Future.value((xs.reverse, ys.reverse, ccStr))
-        case Xor.Right(u) =>
+        case Right(NoticeResponse(_))   => go(xs, ys, ccStr) // throw Notice Responses away
+        case Right(Idle)                => Future.value((xs.reverse, ys.reverse, ccStr))
+        case Right(u) =>
           Future.exception(new PostgresqlStateMachineFailure("Query", u.toString))
-        case Xor.Left(l)  => Future.exception(l)
+        case Left(l)  => Future.exception(l)
         }
       )
 
     go(List.empty[RowDescription], List.empty[DataRow], "")
       .map(tuple => {
-        val f = signal.setDone()
+        val _ = signal.setDone()
         new Result(tuple._1, tuple._2, tuple._3)
       })
   }
@@ -152,11 +148,11 @@ private[roc] final class ClientDispatcher(trans: Transport[Packet, Packet],
         // TODO - create an Error type for this
         case x if x > 1000 => Future.exception(new Exception())
         case x if x < 1000 => trans.read().flatMap(packet => Message.decode(packet) match {
-          case Xor.Left(l) => Future.exception(l)
-          case Xor.Right(ParameterStatus(i, j)) => go(safetyCheck + 1, ParameterStatus(i,j) :: xs, ys)
-          case Xor.Right(BackendKeyData(i, j)) => go(safetyCheck + 1, xs, BackendKeyData(i, j) :: ys)
-          case Xor.Right(Idle) => Future.value((xs, ys))
-          case Xor.Right(message) => Future.exception(
+          case Left(l) => Future.exception(l)
+          case Right(ParameterStatus(i, j)) => go(safetyCheck + 1, ParameterStatus(i,j) :: xs, ys)
+          case Right(BackendKeyData(i, j)) => go(safetyCheck + 1, xs, BackendKeyData(i, j) :: ys)
+          case Right(Idle) => Future.value((xs, ys))
+          case Right(message) => Future.exception(
             new PostgresqlStateMachineFailure("StartupMessage", message.toString)
           )
         })

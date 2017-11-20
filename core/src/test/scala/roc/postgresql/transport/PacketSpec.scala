@@ -2,7 +2,7 @@ package roc
 package postgresql
 package transport
 
-import org.specs2._
+import org.specs2.Specification
 
 final class PacketSpec extends Specification { def is = s2"""
 
@@ -31,8 +31,8 @@ final class PacketSpec extends Specification { def is = s2"""
   def encodeBody = {
     val buf       = Buffer.fromChannelBuffer(packet.toChannelBuffer)
     val bufReader = BufferReader(buf)
-    val _  = bufReader.readByte // tested in encodeMessageTypeByte
-    val __ = bufReader.readInt  // tested in encodeLength
+    bufReader.readByte // tested in encodeMessageTypeByte
+    bufReader.readInt  // tested in encodeLength
 
     bufReader.readInt must_== 0
   }

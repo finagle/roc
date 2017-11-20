@@ -17,10 +17,7 @@ trait Client extends Closable {
 final class StdClient(val factory: ServiceFactory[Request, Result]) extends Client {
   private[this] val service = factory.toService
 
-  def query(req: Request): Future[Result] = {
-    val query = new Query(req.query)
-    service(req)
-  }
+  def query(req: Request): Future[Result] = service(req)
 
   def close(deadline: Time): Future[Unit] = service.close(deadline)
 }

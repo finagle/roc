@@ -3,7 +3,6 @@ package postgresql
 package server
 
 import org.specs2._
-import org.specs2.specification.core._
 
 final class ErrorNoticeMinutiaSpec extends Specification with ScalaCheck { def is = s2"""
 

@@ -1,12 +1,9 @@
 package roc
 package integrations
 
-import com.twitter.finagle.{Addr, Address, Name, Service}
-import com.twitter.util.Var
 import com.twitter.util.Await
 import org.specs2.Specification
 import roc.postgresql.Request
-import scala.io.Source
 
 final class QuerySpec extends Specification 
   with SqlReader

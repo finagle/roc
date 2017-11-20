@@ -1,15 +1,14 @@
 package roc
 package types
 
-import io.circe.syntax._
-import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, OffsetDateTime, 
-  ZoneId, ZonedDateTime}
+import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, ZoneId, ZonedDateTime}
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.temporal.ChronoField
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Gen}
 import org.specs2.{ScalaCheck, Specification}
+import roc.postgresql.Null
 import roc.types.failures.{ElementDecodingFailure, NullDecodedFailure}
 import roc.types.{decoders => Decoders}
 import scala.collection.JavaConverters._
@@ -54,8 +53,8 @@ final class DateTimeDecodersSpec extends Specification with ScalaCheck { def is 
     Decoders.dateElementDecoders.binaryDecoder(x) must throwA[ElementDecodingFailure]
   }
 
-  private val testLocalDateNullDecoding = 
-    Decoders.dateElementDecoders.nullDecoder must throwA[NullDecodedFailure]
+  private val testLocalDateNullDecoding =
+    Decoders.dateElementDecoders.nullDecoder(Null('doesnotmatter, 71)) must throwA[NullDecodedFailure]
 
   private val testValidLocalTimeText = forAll { x: LocalTimeStringContainer =>
     Decoders.localTimeElementDecoders.textDecoder(x.timeString) must_== x.time
@@ -74,7 +73,7 @@ final class DateTimeDecodersSpec extends Specification with ScalaCheck { def is 
   }
 
   private val testLocalTimeNullDecoding =
-    Decoders.localTimeElementDecoders.nullDecoder must throwA[NullDecodedFailure]
+    Decoders.localTimeElementDecoders.nullDecoder(Null('doesnotmatter, 71)) must throwA[NullDecodedFailure]
 
   private val testValidZonedDateTimeText = forAll { x: ZonedDateTimeStringContainer =>
     Decoders.zonedDateTimeElementDecoders.textDecoder(x.dateTimeString) must_== x.dateTime
@@ -93,7 +92,7 @@ final class DateTimeDecodersSpec extends Specification with ScalaCheck { def is 
   }
 
   private val testZonedDateTimeNullDecoding =
-    Decoders.zonedDateTimeElementDecoders.nullDecoder must throwA[NullDecodedFailure]
+    Decoders.zonedDateTimeElementDecoders.nullDecoder(Null('doesnotmatter, 71)) must throwA[NullDecodedFailure]
 
   case class LocalDateStringContainer(date: LocalDate, dateString: String)
   private implicit lazy val arbitraryLocalDateStringContainer: Arbitrary[LocalDateStringContainer] = 
@@ -181,13 +180,6 @@ final class DateTimeDecodersSpec extends Specification with ScalaCheck { def is 
       instant <- arbitrary[Instant]
       zoneId  <- arbitrary[ZoneId]
     } yield ZonedDateTime.ofInstant(instant, zoneId)
-  )
-
-  private implicit lazy val arbitraryOffsetDateTime: Arbitrary[OffsetDateTime] = Arbitrary(
-    for {
-      instant <- arbitrary[Instant]
-      zoneId  <- arbitrary[ZoneId]
-    } yield OffsetDateTime.ofInstant(instant, zoneId)
   )
 
   private implicit lazy val arbitraryLocalDate: Arbitrary[LocalDate] = 

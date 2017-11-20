@@ -2,9 +2,7 @@ package roc
 package postgresql
 package transport
 
-import org.specs2._
-import org.specs2.specification.core._
-import org.specs2.specification.create.FragmentsFactory
+import org.specs2.Specification
 
 final class BufferWriterSpec extends Specification { def is = s2"""
 
@@ -106,6 +104,5 @@ final class BufferWriterSpec extends Specification { def is = s2"""
     private val bytes = new Array[Byte](len)
     private val bw    = BufferWriter(bytes)
     private val br    = BufferReader(bytes)
-    private val ff = fragmentFactory
   }
 }
