@@ -13,6 +13,13 @@ object failures {
     */
   final class PostgresqlServerFailure(message: PostgresqlMessage) extends Failure {
     final override def getMessage: String = message.toString
+
+  /** The SQLSTATE code for the error.
+    * @note Not localizable. Always present.
+    * @see [[http://www.postgresql.org/docs/current/static/errcodes-appendix.html]]
+    * @see [[http://www.postgresql.org/docs/current/static/protocol-error-fields.html]]
+    */
+    val code: String = message.code
   }
 
   /** Represents a failed attempt to Decode an [[Element]] from it's Postgresql Representation.

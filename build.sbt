@@ -6,7 +6,7 @@ Defaults.itSettings
 
 lazy val buildSettings = Seq(
   organization := "com.github.finagle",
-  scalaVersion := "2.12.3",
+  scalaVersion := "2.12.4",
   crossScalaVersions := Seq("2.11.8", "2.12.3")
 )
 
@@ -56,7 +56,7 @@ lazy val baseSettings = Seq(
 
 lazy val allSettings = buildSettings ++ baseSettings ++ Defaults.itSettings
 
-lazy val coreVersion = "0.0.6"
+lazy val coreVersion = "0.0.7-M1"
 
 lazy val catsVersion = "0.9.0"
 
