@@ -69,6 +69,13 @@ final class Result(rowDescription: List[RowDescription], data: List[DataRow], cc
   val completedCommand = cc
 }
 
+object Result {
+
+  /** Creates an empty Result. Useful for external testing.
+   */
+  def empty: Result = new Result(List.empty[RowDescription], List.empty[DataRow])
+}
+
 /** Format of data being returned by Postgresql.
   *
   * Currently there are only two types, Text and Binary.
@@ -100,12 +107,10 @@ object Column {
   }
 }
 
-/** A row returned from a Postgresql Server containing at least one
-  *  [[Element]]
-  * @param elements a collection of all [[row.postgresql.Element Elements]] returned from 
+/** A row returned from a Postgresql Server containing at least one Element
   *   Postgresql via a query.
   */
-final class Row private[postgresql](private[postgresql] val elements: List[Element]) {
+class Row(elements: List[Element]) {
 
   /** Returns the [[roc.postgresql.Element Element]] found via the column name
     *
@@ -176,7 +181,7 @@ sealed abstract class Element(val name: Symbol, columnType: Int) {
 }
 
 case class Null(override val name: Symbol, columnType: Int) extends Element(name, columnType)
-case class Text(override val name: Symbol, columnType: Int, value: String) 
+case class Text(override val name: Symbol, columnType: Int, value: String)
   extends Element(name, columnType)
 case class Binary(override val name: Symbol, columnType: Int, value: Array[Byte])
   extends Element(name, columnType)
