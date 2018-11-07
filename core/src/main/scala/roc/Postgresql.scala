@@ -4,6 +4,7 @@ import com.twitter.finagle.client.{DefaultPool, StackClient, StdStackClient}
 import com.twitter.finagle.netty3.Netty3Transporter
 import com.twitter.finagle.transport.Transport
 import com.twitter.finagle.{Name, Service, ServiceFactory, Stack}
+import com.twitter.finagle.param.WithSessionPool
 import com.twitter.util.Duration
 import java.net.SocketAddress
 import roc.postgresql.transport.{Packet, PostgresqlClientPipelineFactory}
@@ -54,7 +55,9 @@ object Postgresql extends com.twitter.finagle.Client[Request, Result]
         low = 0, high = 1, bufferSize = 0,
         idleTime = Duration.Top,
         maxWaiters = Int.MaxValue)
-  ) extends StdStackClient[Request, Result, Client] with PostgresqlRichClient {
+  ) extends StdStackClient[Request, Result, Client]
+    with PostgresqlRichClient
+    with WithSessionPool[Client] {
     protected def copy1(
       stack: Stack[ServiceFactory[Request, Result]] = this.stack,
       params: Stack.Params = this.params
