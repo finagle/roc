@@ -4,6 +4,10 @@ import sbtunidoc.Plugin.UnidocKeys._
 
 Defaults.itSettings
 
+//useGpg := true
+
+pgpReadOnly := false
+
 lazy val buildSettings = Seq(
   organization := "com.github.finagle",
   scalaVersion := "2.12.7",
@@ -156,6 +160,19 @@ lazy val sharedPublishSettings = Seq(
     </developers>
   )
 )
+
+credentials ++= (
+  for {
+    username <- Option(System.getenv().get("SONATYPE_USERNAME"))
+    password <- Option(System.getenv().get("SONATYPE_PASSWORD"))
+  } yield
+    Credentials(
+      "Sonatype Nexus Repository Manager",
+      "oss.sonatype.org",
+      username,
+      password
+    )
+).toSeq
 
 lazy val noPublishSettings = Seq(
   publish := (),
